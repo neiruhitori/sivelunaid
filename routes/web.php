@@ -1,52 +1,20 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
-
-use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\CategoriesController;
-use App\Http\Controllers\Admin\ProductsController;
-use App\Http\Controllers\Admin\ProductGroupsController;
-use App\Http\Controllers\Admin\ProductVariantsController;
-use App\Http\Controllers\Admin\ProductFieldsController;
-
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
 
 Route::get('/', function () {
     return view('welcome');
-})->name('home');
+});
 
+Route::get('/dashboard', function () {
+    return view('dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes
-|--------------------------------------------------------------------------
-*/
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware(['auth'])
-    ->group(function () {
-
-        // Dashboard
-        Route::get('/dashboard', [DashboardController::class, 'index'])
-            ->name('dashboard');
-
-        // Categories
-        Route::resource('categories', CategoriesController::class);
-
-        // Products
-        Route::resource('products', ProductsController::class);
-
-        // Product Groups
-        Route::resource('product-groups', ProductGroupsController::class);
-
-        // Product Variants / Price List
-        Route::resource('product-variants', ProductVariantsController::class);
-
-        // Product Fields
-        Route::resource('product-fields', ProductFieldsController::class);
-    });
+require __DIR__.'/auth.php';
