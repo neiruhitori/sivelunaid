@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\ProductGroups;
+use App\Http\Controllers\Controller;
+use App\Models\ProductGroup;
 use Illuminate\Http\Request;
 
 class ProductGroupsController extends Controller
@@ -34,7 +35,7 @@ class ProductGroupsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ProductGroups $productGroups)
+    public function show(ProductGroup $productGroup)
     {
         //
     }
@@ -42,7 +43,7 @@ class ProductGroupsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductGroups $productGroups)
+    public function edit(ProductGroup $productGroup)
     {
         //
     }
@@ -50,7 +51,7 @@ class ProductGroupsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ProductGroups $productGroups)
+    public function update(Request $request, ProductGroup $productGroup)
     {
         //
     }
@@ -58,7 +59,7 @@ class ProductGroupsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ProductGroups $productGroups)
+    public function destroy(ProductGroup $productGroup)
     {
         //
     }

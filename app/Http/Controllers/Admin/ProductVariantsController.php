@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\ProductVariants;
+use App\Http\Controllers\Controller;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
 class ProductVariantsController extends Controller
@@ -34,7 +35,7 @@ class ProductVariantsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ProductVariants $productVariants)
+    public function show(ProductVariant $productVariant)
     {
         //
     }
@@ -42,7 +43,7 @@ class ProductVariantsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductVariants $productVariants)
+    public function edit(ProductVariant $productVariant)
     {
         //
     }
@@ -50,7 +51,7 @@ class ProductVariantsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ProductVariants $productVariants)
+    public function update(Request $request, ProductVariant $productVariant)
     {
         //
     }
@@ -58,7 +59,7 @@ class ProductVariantsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ProductVariants $productVariants)
+    public function destroy(ProductVariant $productVariant)
     {
         //
     }

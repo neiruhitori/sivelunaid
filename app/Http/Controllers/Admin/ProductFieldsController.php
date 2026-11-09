@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\ProductFields;
+use App\Http\Controllers\Controller;
+use App\Models\ProductField;
 use Illuminate\Http\Request;
 
 class ProductFieldsController extends Controller
@@ -34,7 +35,7 @@ class ProductFieldsController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(ProductFields $productFields)
+    public function show(ProductField $productField)
     {
         //
     }
@@ -42,7 +43,7 @@ class ProductFieldsController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ProductFields $productFields)
+    public function edit(ProductField $productField)
     {
         //
     }
@@ -50,7 +51,7 @@ class ProductFieldsController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ProductFields $productFields)
+    public function update(Request $request, ProductField $productField)
     {
         //
     }
@@ -58,7 +59,7 @@ class ProductFieldsController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(ProductFields $productFields)
+    public function destroy(ProductField $productField)
     {
         //
     }

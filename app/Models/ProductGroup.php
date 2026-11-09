@@ -5,28 +5,37 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ProductVariants extends Model
+class ProductGroup extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'product_group_id',
+        'product_id',
         'name',
         'description',
-        'price',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
-        'price' => 'decimal:2',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];
 
-    public function group(): BelongsTo
+    public function product(): BelongsTo
     {
-        return $this->belongsTo(ProductGroups::class, 'product_group_id');
+        return $this->belongsTo(Product::class);
+    }
+
+    public function variants(): HasMany
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function fields(): HasMany
+    {
+        return $this->hasMany(ProductField::class);
     }
 }

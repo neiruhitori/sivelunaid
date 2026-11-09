@@ -4,17 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ProductGroups extends Model
+class Category extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'product_id',
         'name',
+        'slug',
         'description',
+        'image',
         'is_active',
         'sort_order',
     ];
@@ -24,18 +24,8 @@ class ProductGroups extends Model
         'sort_order' => 'integer',
     ];
 
-    public function product(): BelongsTo
+    public function products(): HasMany
     {
-        return $this->belongsTo(Products::class);
-    }
-
-    public function variants(): HasMany
-    {
-        return $this->hasMany(ProductVariants::class);
-    }
-
-    public function fields(): HasMany
-    {
-        return $this->hasMany(ProductFields::class);
+        return $this->hasMany(Product::class);
     }
 }

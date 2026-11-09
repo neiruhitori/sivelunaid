@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ProductFields extends Model
+class ProductField extends Model
 {
     use HasFactory;
 
@@ -27,6 +27,6 @@ class ProductFields extends Model
 
     public function group(): BelongsTo
     {
-        return $this->belongsTo(ProductGroups::class, 'product_group_id');
+        return $this->belongsTo(ProductGroup::class, 'product_group_id');
     }
 }
