@@ -40,13 +40,8 @@ class CategoriesController extends Controller
             ->addColumn('image_preview', function ($category) {
                 if (!$category->image) {
                     return '
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-gray-100 text-gray-400">
-                <svg class="h-5 w-5" fill="none" stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        stroke-width="1.5"
-                        d="M3 16.5V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v10.5m-16 0 4.5-4.5 3 3 3-3 5.5 5.5M3 16.5V18a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-1.5" />
-                </svg>
+            <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width:48px;height:48px">
+                <i class="far fa-image"></i>
             </div>
         ';
                 }
@@ -54,7 +49,7 @@ class CategoriesController extends Controller
                 $url = asset('storage/' . $category->image);
 
                 return '
-        <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl border border-gray-100 bg-gray-50">
+        <div class="d-flex align-items-center justify-content-center overflow-hidden rounded border">
             <img
                 src="' . e($url) . '"
                 alt="' . e($category->name) . '"
@@ -69,25 +64,25 @@ class CategoriesController extends Controller
 
             ->addColumn('status', function ($category) {
                 return $category->is_active
-                    ? '<span class="inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">Aktif</span>'
-                    : '<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-600">Nonaktif</span>';
+                    ? '<span class="badge badge-success">Aktif</span>'
+                    : '<span class="badge badge-secondary">Nonaktif</span>';
             })
 
             ->addColumn('actions', function ($category) {
                 return '
-                    <div class="flex items-center gap-2">
+                    <div class="btn-group btn-group-sm" role="group">
                         <button type="button"
                             data-action="edit"
                             data-id="' . $category->id . '"
-                            class="rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-200">
-                            Edit
+                            class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit
                         </button>
 
                         <button type="button"
                             data-action="delete"
                             data-id="' . $category->id . '"
-                            class="rounded-lg bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200">
-                            Hapus
+                            class="btn btn-outline-danger">
+                            <i class="fas fa-trash"></i> Hapus
                         </button>
                     </div>
                 ';

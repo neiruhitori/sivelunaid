@@ -3,7 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Dashboard;
+use App\Models\Product;
+use App\Models\ProductGroup;
+use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -14,7 +18,11 @@ class DashboardController extends Controller
     public function index()
     {
         return view('dashboard', [
-    ]);
+            'categoryCount' => Category::count(),
+            'productCount' => Product::count(),
+            'productGroupCount' => ProductGroup::count(),
+            'productVariantCount' => ProductVariant::count(),
+        ]);
     }
 
     /**
