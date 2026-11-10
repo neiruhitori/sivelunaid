@@ -1,0 +1,57 @@
+<x-app-layout>
+    <x-slot name="header">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div><h1 class="m-0 text-dark">Product Group</h1><small class="text-muted">Kelola kelompok produk dalam katalog.</small></div>
+            <ol class="breadcrumb float-sm-right mb-0 bg-transparent"><li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li><li class="breadcrumb-item active">Product Group</li></ol>
+        </div>
+    </x-slot>
+
+    @if ($products->isEmpty())
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle mr-1"></i>Tambahkan Product terlebih dahulu sebelum membuat Product Group. <a href="{{ route('admin.products.index') }}" class="alert-link ml-1">Buka Product</a></div>
+    @endif
+
+    <div class="card card-primary card-outline">
+        <div class="card-header"><h3 class="card-title"><i class="fas fa-layer-group mr-2"></i>Daftar Product Group</h3><div class="card-tools"><button type="button" id="btn-add-group" class="btn btn-primary btn-sm" @disabled($products->isEmpty())><i class="fas fa-plus mr-1"></i> Tambah Product Group</button></div></div>
+        <div class="card-body"><div class="table-responsive"><table id="product-groups-table" class="table table-bordered table-hover table-striped w-100"><thead><tr><th>No.</th><th>Nama Group</th><th>Product</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Dibuat</th><th style="min-width:130px">Aksi</th></tr></thead></table></div></div>
+    </div>
+
+    <div class="modal fade" id="group-modal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content"><form id="group-form" method="POST">
+        @csrf
+        <input type="hidden" name="sort_order_custom" id="sort_order_custom" value="0">
+        <div class="modal-header"><div><h5 class="modal-title" id="modal-title">Tambah Product Group</h5><small class="text-muted">Pilih produk induk dan lengkapi informasi kelompok.</small></div><button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button></div>
+        <div class="modal-body"><div id="form-errors" class="alert alert-danger d-none" role="alert"></div>
+            <div class="form-group"><label for="product_id">Product <span class="text-danger">*</span></label><select class="form-control select2" id="product_id" name="product_id" style="width:100%" required><option value="">Pilih product</option>@foreach($products as $product)<option value="{{ $product->id }}">{{ $product->name }}</option>@endforeach</select></div>
+            <div class="form-group"><label for="name">Nama Group <span class="text-danger">*</span></label><input class="form-control" id="name" name="name" type="text" maxlength="150" required placeholder="Contoh: Paket Hemat"></div>
+            <div class="form-group"><label for="description">Deskripsi <small class="text-muted">(opsional)</small></label><textarea class="form-control" id="description" name="description" rows="3" placeholder="Deskripsi kelompok produk"></textarea></div>
+            <div class="row"><div class="form-group col-sm-6"><label for="sort_order">Urutan Tampilan</label><input class="form-control" id="sort_order" name="sort_order" type="number" min="0" step="1" value="0" required><small id="sort-order-help" class="form-text text-muted">Otomatis ditambahkan di akhir urutan Product terpilih; ubah angka untuk menyisipkan posisi.</small></div><div class="form-group col-sm-6"><label for="is_active">Status</label><select class="custom-select" id="is_active" name="is_active" required><option value="1">Aktif</option><option value="0">Nonaktif</option></select></div></div>
+        </div><div class="modal-footer justify-content-between"><button type="button" class="btn btn-default" data-dismiss="modal">Batal</button><button type="submit" id="btn-save-group" class="btn btn-primary"><i class="fas fa-save mr-1"></i><span>Simpan Product Group</span></button></div>
+    </form></div></div></div>
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2/css/select2.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+        <style>#product-groups-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}</style>
+    @endpush
+    @push('scripts')
+        <script src="{{ asset('AdminLTE-3.2.0/plugins/datatables/jquery.dataTables.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+        <script src="{{ asset('AdminLTE-3.2.0/plugins/select2/js/select2.full.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+        <script>
+        $(function(){
+            const table=$('#product-groups-table').DataTable({processing:true,serverSide:true,autoWidth:false,ajax:"{{ route('admin.product-groups.data') }}",columns:[
+                {data:'DT_RowIndex',name:'DT_RowIndex',orderable:false,searchable:false},{data:'name',name:'product_groups.name'},{data:'product_name',name:'products.name'},{data:'description',name:'product_groups.description',defaultContent:'-'},{data:'sort_order',name:'product_groups.sort_order'},{data:'status',name:'product_groups.is_active',searchable:false},{data:'created_at',name:'product_groups.created_at'},{data:'actions',name:'actions',orderable:false,searchable:false}
+            ],order:[[4,'asc']],language:{processing:'Memproses...',search:'Cari:',lengthMenu:'Tampilkan _MENU_ data',info:'Menampilkan _START_–_END_ dari _TOTAL_ data',infoEmpty:'Belum ada data Product Group',infoFiltered:'(difilter dari _MAX_ total data)',zeroRecords:'Product Group tidak ditemukan',emptyTable:'Belum ada Product Group. Silakan tambahkan data pertama.',paginate:{first:'Pertama',last:'Terakhir',next:'Berikutnya',previous:'Sebelumnya'}}});
+            const modal=$('#group-modal'),form=$('#group-form'),errors=$('#form-errors'),save=$('#btn-save-group');let editing=false;
+            $('#product_id').select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Pilih product',allowClear:true,width:'100%'});
+            function reset(){form[0].reset();$('#product_id').val('').trigger('change');errors.addClass('d-none').empty();$('#sort_order_custom').val('0');$('#sort_order').val({{ $nextSortOrder }});form.find('input[name="_method"]').remove();save.prop('disabled',false);}
+            $('#btn-add-group').on('click',function(){editing=false;reset();form.attr('action',"{{ route('admin.product-groups.store') }}");$('#modal-title').text('Tambah Product Group');save.find('span').text('Simpan Product Group');$('#sort-order-help').text('Nomor berikutnya dari database: {{ $nextSortOrder }}.');modal.modal('show');});
+            $('#sort_order').on('input',()=>$('#sort_order_custom').val('1'));modal.on('hidden.bs.modal',reset);
+            $('#product-groups-table').on('click','[data-action="edit"]',function(){const row=table.row($(this).closest('tr')).data();if(!row)return;editing=true;reset();form.attr('action',"{{ route('admin.product-groups.update', ':id') }}".replace(':id',row.id));form.append('<input type="hidden" name="_method" value="PUT">');$('#modal-title').text('Edit Product Group');save.find('span').text('Simpan Perubahan');$('#product_id').val(String(row.product_id)).trigger('change');$('#name').val(row.name);$('#description').val(row.description||'');$('#sort_order').val(row.sort_order);$('#sort_order_custom').val('0');$('#is_active').val(row.is_active?'1':'0');modal.modal('show');});
+            form.on('submit',function(e){e.preventDefault();errors.addClass('d-none').empty();save.prop('disabled',true);$.ajax({url:form.attr('action'),method:'POST',data:form.serialize(),headers:{Accept:'application/json'}}).done(function(resp){modal.modal('hide');table.ajax.reload(null,false);Swal.fire({icon:'success',title:'Berhasil',text:resp.message,timer:1700,showConfirmButton:false});}).fail(function(xhr){if(xhr.status===422&&xhr.responseJSON?.errors){errors.html(Object.values(xhr.responseJSON.errors).flat().map(msg=>`<div>${$('<div>').text(msg).html()}</div>`).join('')).removeClass('d-none');}else{Swal.fire({icon:'error',title:'Gagal',text:xhr.responseJSON?.message||'Product Group gagal disimpan.'});}}).always(()=>save.prop('disabled',false));});
+            $('#product-groups-table').on('click','[data-action="delete"]',function(){const row=table.row($(this).closest('tr')).data();if(!row)return;Swal.fire({icon:'warning',title:'Hapus Product Group?',text:`Data "${row.name}" beserta variant dan field terkait akan dihapus.`,showCancelButton:true,confirmButtonText:'Ya, hapus',cancelButtonText:'Batal',confirmButtonColor:'#dc3545'}).then(result=>{if(!result.isConfirmed)return;$.ajax({url:"{{ route('admin.product-groups.destroy', ':id') }}".replace(':id',row.id),method:'POST',data:{_token:$('meta[name="csrf-token"]').attr('content'),_method:'DELETE'},headers:{Accept:'application/json'}}).done(resp=>{table.ajax.reload(null,false);Swal.fire({icon:'success',title:'Berhasil',text:resp.message,timer:1700,showConfirmButton:false});}).fail(xhr=>Swal.fire({icon:'error',title:'Gagal',text:xhr.responseJSON?.message||'Product Group gagal dihapus.'}));});});
+        });
+        </script>
+    @endpush
+</x-app-layout>

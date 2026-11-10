@@ -74,6 +74,8 @@ Route::middleware(['auth', 'verified'])
             ->only(['index', 'store', 'update', 'destroy']);
 
         // Product Groups
+        Route::get('product-groups/data', [ProductGroupsController::class, 'data'])
+            ->name('product-groups.data');
         Route::resource('product-groups', ProductGroupsController::class);
 
         // Product Variants
