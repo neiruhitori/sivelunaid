@@ -19,8 +19,13 @@ use App\Http\Controllers\Admin\ProductFieldsController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('welcome.index');
+})->name('welcome.index');
+
+Route::view('/mobile-legends', 'welcome.mobile-legends')->name('welcome.mobile-legends');
+Route::view('/roblox', 'welcome.roblox')->name('welcome.roblox');
+Route::view('/roblox-vilog', 'welcome.roblox-vilog')->name('welcome.roblox-vilog');
+Route::view('/roblox-gig', 'welcome.roblox-gig')->name('welcome.roblox-gig');
 
 /*
 |--------------------------------------------------------------------------
@@ -63,7 +68,10 @@ Route::middleware(['auth', 'verified'])
         Route::resource('categories', CategoriesController::class);
 
         // Products
-        Route::resource('products', ProductsController::class);
+        Route::get('products/data', [ProductsController::class, 'data'])
+            ->name('products.data');
+        Route::resource('products', ProductsController::class)
+            ->only(['index', 'store', 'update', 'destroy']);
 
         // Product Groups
         Route::resource('product-groups', ProductGroupsController::class);

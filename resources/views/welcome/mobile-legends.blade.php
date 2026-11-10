@@ -1,0 +1,302 @@
+@extends('welcome.layout')
+
+@section('head')
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pesan Weekly Diamond Pass atau top up Diamond Mobile Legends di Veluna Store.">
+  <title>Top Up Mobile Legends - Veluna Store</title>
+  <link rel="icon" type="image/png" href="{{ asset('Welcome/image/iconvelunabulat.png') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ asset('Welcome/style.css') }}">
+  <link rel="stylesheet" href="{{ asset('Welcome/roblox.css') }}">
+</head>
+@endsection
+
+@section('content')
+  <main class="roblox-page">
+    <div class="page-width">
+      <nav class="breadcrumbs" aria-label="Breadcrumb">
+        <a href="{{ route('welcome.index') }}">Beranda</a><span aria-hidden="true">/</span>
+        <a href="{{ route('welcome.index') }}#produk">Game</a><span aria-hidden="true">/</span>
+        <span aria-current="page">Mobile Legends</span>
+      </nav>
+
+      <section class="roblox-banner ml-banner" aria-label="Top up Mobile Legends">
+        <div class="roblox-banner-copy">
+          <p class="eyebrow">TOP UP MOBILE LEGENDS</p>
+          <h1>DIAMOND</h1>
+          <p>Isi data akun, pilih Weekly Diamond Pass, top up Diamond, atau Double Diamond, lalu lanjutkan konfirmasi pesanan melalui WhatsApp.</p>
+        </div>
+        <div class="roblox-banner-art">
+          <img class="game-mark ml-page-mark game-logo" src="{{ asset('Welcome/image/iconml.png') }}" alt="Ikon Mobile Legends">
+        </div>
+        <span class="banner-orbit orbit-one" aria-hidden="true"></span>
+        <span class="banner-orbit orbit-two" aria-hidden="true"></span>
+      </section>
+
+      <section class="game-overview" aria-labelledby="game-title">
+        <div class="game-cover ml-game-cover">
+          <img class="game-mark game-logo" src="{{ asset('Welcome/image/iconml.png') }}" alt="Ikon Mobile Legends">
+        </div>
+        <div class="game-overview-copy">
+          <p class="eyebrow">LAYANAN TOP UP</p>
+          <h2 id="game-title">Mobile Legends</h2>
+          <p class="publisher">Weekly Diamond Pass · Top up Diamond · Double Diamond</p>
+          <div class="service-points">
+            <span><b aria-hidden="true">✓</b> Pakai User ID & Server</span>
+            <span><b aria-hidden="true">♡</b> Mudah</span>
+            <span><b aria-hidden="true">✦</b> Konfirmasi via WhatsApp</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="purchase-layout">
+        <section class="purchase-card" aria-labelledby="purchase-heading">
+          <div class="step-heading">
+            <span>1</span>
+            <h2 id="purchase-heading">1. Masukkan data akun</h2>
+          </div>
+          <div class="nominal-content ml-purchase-content">
+            <p class="nominal-note">Pastikan User ID dan Zone ID (Server) benar sebelum membuat pesanan. Kami tidak meminta kata sandi atau kode OTP.</p>
+            <div class="ml-account-fields">
+              <div class="account-field">
+                <label for="ml-user-id">User ID</label>
+                <input id="ml-user-id" type="text" inputmode="numeric" pattern="[0-9]+" autocomplete="off" placeholder="Contoh: 12345678" required>
+              </div>
+              <div class="account-field">
+                <label for="ml-server-id">Zone ID (Server)</label>
+                <input id="ml-server-id" type="text" inputmode="numeric" pattern="[0-9]+" autocomplete="off" placeholder="Contoh: 1234" required>
+              </div>
+            </div>
+
+            <fieldset class="ml-product-field">
+              <legend>2. Pilih jenis produk</legend>
+              <div class="ml-product-options">
+                <label class="ml-product-option">
+                  <input type="radio" name="ml-product-type" value="Weekly Diamond Pass" data-ml-product>
+                  <span><strong>Weekly Diamond Pass</strong><small>5 pilihan paket</small></span>
+                </label>
+                <label class="ml-product-option">
+                  <input type="radio" name="ml-product-type" value="Top up Diamond" data-ml-product>
+                  <span><strong>Top up Diamond</strong><small>27 pilihan paket</small></span>
+                </label>
+                <label class="ml-product-option">
+                  <input type="radio" name="ml-product-type" value="Double Diamond" data-ml-product>
+                  <span><strong>Double Diamond</strong><small>Untuk akun baru / first top-up</small></span>
+                </label>
+              </div>
+            </fieldset>
+
+            <section class="ml-package-section" data-package-section="Weekly Diamond Pass" hidden>
+              <h3>Pilih paket Weekly Diamond Pass</h3>
+              <div class="nominal-grid ml-package-grid">
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="WDP" data-price="31500">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">W</span><span class="nominal-details"><strong>WDP</strong><small>Weekly Diamond Pass</small></span><b class="nominal-price">Rp 31.500</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="WDP 2x" data-price="64000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">W</span><span class="nominal-details"><strong>WDP 2x</strong><small>Weekly Diamond Pass</small></span><b class="nominal-price">Rp 64.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="WDP 3x" data-price="95000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">W</span><span class="nominal-details"><strong>WDP 3x</strong><small>Weekly Diamond Pass</small></span><b class="nominal-price">Rp 95.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="WDP 4x" data-price="127000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">W</span><span class="nominal-details"><strong>WDP 4x</strong><small>Weekly Diamond Pass</small></span><b class="nominal-price">Rp 127.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="WDP 5x" data-price="158500">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">W</span><span class="nominal-details"><strong>WDP 5x</strong><small>Weekly Diamond Pass</small></span><b class="nominal-price">Rp 158.500</b>
+                </button>
+              </div>
+            </section>
+
+            <section class="ml-package-section" data-package-section="Top up Diamond" hidden>
+              <h3>Pilih paket Diamond</h3>
+              <div class="nominal-grid ml-package-grid">
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="5 Diamond" data-price="2000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>5 Diamond</strong><small>Top up Diamond</small></span><b class="nominal-price">Rp 2.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="12 Diamond" data-price="4000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>12 Diamond</strong><small>Top up Diamond</small></span><b class="nominal-price">Rp 4.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="19 Diamond (17+2 bonus)" data-price="6000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>19 Diamond</strong><small>17 + 2 bonus</small></span><b class="nominal-price">Rp 6.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="28 Diamond (25+3 bonus)" data-price="9000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>28 Diamond</strong><small>25 + 3 bonus</small></span><b class="nominal-price">Rp 9.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="44 Diamond (40+4 bonus)" data-price="13000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>44 Diamond</strong><small>40 + 4 bonus</small></span><b class="nominal-price">Rp 13.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="59 Diamond (53+6 bonus)" data-price="18000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>59 Diamond</strong><small>53 + 6 bonus</small></span><b class="nominal-price">Rp 18.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="85 Diamond (77+8 bonus)" data-price="26000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>85 Diamond</strong><small>77 + 8 bonus</small></span><b class="nominal-price">Rp 26.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="170 Diamond (154+16 bonus)" data-price="51000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>170 Diamond</strong><small>154 + 16 bonus</small></span><b class="nominal-price">Rp 51.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="240 Diamond (217+23 bonus)" data-price="71000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>240 Diamond</strong><small>217 + 23 bonus</small></span><b class="nominal-price">Rp 71.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="257 Diamond (234+23 bonus)" data-price="76000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>257 Diamond</strong><small>234 + 23 bonus</small></span><b class="nominal-price">Rp 76.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="284 Diamond (257+27 bonus)" data-price="84000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>284 Diamond</strong><small>257 + 27 bonus</small></span><b class="nominal-price">Rp 84.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="296 Diamond (256+40 bonus)" data-price="89000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>296 Diamond</strong><small>256 + 40 bonus</small></span><b class="nominal-price">Rp 89.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="344 Diamond (312+32 bonus)" data-price="102000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>344 Diamond</strong><small>312 + 32 bonus</small></span><b class="nominal-price">Rp 102.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="408 Diamond (367+41 bonus)" data-price="121000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>408 Diamond</strong><small>367 + 41 bonus</small></span><b class="nominal-price">Rp 121.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="429 Diamond (388+41 bonus)" data-price="128000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>429 Diamond</strong><small>388 + 41 bonus</small></span><b class="nominal-price">Rp 128.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="514 Diamond (462+52 bonus)" data-price="153000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>514 Diamond</strong><small>462 + 52 bonus</small></span><b class="nominal-price">Rp 153.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="568 Diamond (503+65 bonus)" data-price="166000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>568 Diamond</strong><small>503 + 65 bonus</small></span><b class="nominal-price">Rp 166.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="600 Diamond (534+66 bonus)" data-price="179000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>600 Diamond</strong><small>534 + 66 bonus</small></span><b class="nominal-price">Rp 179.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="706 Diamond (625+81 bonus)" data-price="207000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>706 Diamond</strong><small>625 + 81 bonus</small></span><b class="nominal-price">Rp 207.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="716 Diamond (637+79 bonus)" data-price="210000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>716 Diamond</strong><small>637 + 79 bonus</small></span><b class="nominal-price">Rp 210.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="875 Diamond (774+101 bonus)" data-price="254000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>875 Diamond</strong><small>774 + 101 bonus</small></span><b class="nominal-price">Rp 254.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="963 Diamond (854+109 bonus)" data-price="280000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>963 Diamond</strong><small>854 + 109 bonus</small></span><b class="nominal-price">Rp 280.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="1.050 Diamond (933+117 bonus)" data-price="306000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>1.050 Diamond</strong><small>933 + 117 bonus</small></span><b class="nominal-price">Rp 306.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="1.220 Diamond (1.058+162 bonus)" data-price="358000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>1.220 Diamond</strong><small>1.058 + 162 bonus</small></span><b class="nominal-price">Rp 358.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="1.412 Diamond (1.258+154 bonus)" data-price="414000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>1.412 Diamond</strong><small>1.258 + 154 bonus</small></span><b class="nominal-price">Rp 414.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="2.010 Diamond (1.708+302 bonus)" data-price="552000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>2.010 Diamond</strong><small>1.708 + 302 bonus</small></span><b class="nominal-price">Rp 552.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="4.830 Diamond (4.003+827 bonus)" data-price="1325000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>4.830 Diamond</strong><small>4.003 + 827 bonus</small></span><b class="nominal-price">Rp 1.325.000</b>
+                </button>
+              </div>
+            </section>
+
+            <section class="ml-package-section" data-package-section="Double Diamond" hidden>
+              <h3>Pilih paket Double Diamond</h3>
+              <p class="ml-price-note">Khusus pengguna baru yang belum pernah top up atau akun Mobile Legends baru.</p>
+              <div class="nominal-grid ml-package-grid">
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="100 Double Diamond (50+50)" data-price="17000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>100 Diamond</strong><small>50 + 50 Double Diamond</small></span><b class="nominal-price">Rp 17.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="300 Double Diamond (150+150)" data-price="50000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>300 Diamond</strong><small>150 + 150 Double Diamond</small></span><b class="nominal-price">Rp 50.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="500 Double Diamond (250+250)" data-price="84000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>500 Diamond</strong><small>250 + 250 Double Diamond</small></span><b class="nominal-price">Rp 84.000</b>
+                </button>
+                <button class="nominal-option ml-package-option" type="button" data-ml-package data-package-name="1.000 Double Diamond (500+500)" data-price="169000">
+                  <span class="robux-icon ml-package-icon" aria-hidden="true">D</span><span class="nominal-details"><strong>1.000 Diamond</strong><small>500 + 500 Double Diamond</small></span><b class="nominal-price">Rp 169.000</b>
+                </button>
+              </div>
+            </section>
+            <p class="ml-price-note">Pastikan jenis produk dan nominal sudah sesuai sebelum membuat pesanan.</p>
+
+            <fieldset class="payment-field">
+              <legend>3. Pilih pembayaran</legend>
+              <label><input type="radio" name="payment-method" value="QRIS" data-payment-option> QRIS</label>
+              <label><input type="radio" name="payment-method" value="Transfer Bank" data-payment-option> Transfer Bank</label>
+              <label><input type="radio" name="payment-method" value="E-Wallet" data-payment-option> E-Wallet</label>
+            </fieldset>
+            <section class="payment-detail" data-payment-panel="QRIS" hidden>
+              <h3>Pembayaran QRIS</h3>
+              <figure class="qris-image"><img src="{{ asset('Welcome/image/qris.jpeg') }}" alt="Kode QRIS untuk pembayaran Veluna"><figcaption>Pindai kode QRIS ini setelah admin mengonfirmasi total pesanan melalui WhatsApp.</figcaption></figure>
+            </section>
+            <section class="payment-detail" data-payment-panel="Transfer Bank" hidden>
+              <h3>Transfer ke SeaBank</h3>
+              <div class="provider-options">
+                <label><input type="radio" name="bank-provider" value="SeaBank" data-provider-option><span><strong>SeaBank</strong><small>No. rekening: 901318468036</small></span></label>
+              </div>
+              <p class="payment-next-step">Pilih SeaBank. Detail pembayaran dan konfirmasi dilanjutkan melalui WhatsApp.</p>
+            </section>
+            <section class="payment-detail" data-payment-panel="E-Wallet" hidden>
+              <h3>Pilih e-wallet tujuan</h3>
+              <div class="provider-options wallet-options">
+                <label><input type="radio" name="wallet-provider" value="DANA" data-provider-option><span><strong>DANA</strong><small>+62 852-3649-6518</small></span></label>
+                <label><input type="radio" name="wallet-provider" value="GoPay" data-provider-option><span><strong>GoPay</strong><small>+62 852-3649-6518</small></span></label>
+                <label><input type="radio" name="wallet-provider" value="SPay" data-provider-option><span><strong>SPay</strong><small>+62 852-3649-6518</small></span></label>
+              </div>
+              <p class="payment-next-step">Pilih e-wallet. Detail pembayaran dan konfirmasi dilanjutkan melalui WhatsApp.</p>
+            </section>
+          </div>
+        </section>
+
+        <aside class="purchase-aside">
+          <section class="support-card">
+            <span class="support-icon" aria-hidden="true">♡</span>
+            <div>
+              <h2>Butuh bantuan?</h2>
+              <p>Tim Veluna siap membantu.</p>
+              <a href="https://wa.me/6738386518" target="_blank" rel="noopener noreferrer">Hubungi kami <span aria-hidden="true">→</span></a>
+            </div>
+          </section>
+          <section class="order-card" aria-labelledby="order-heading">
+            <h2 id="order-heading">Ringkasan pesanan</h2>
+            <div class="order-empty" data-order-empty>
+              <span class="empty-icon" aria-hidden="true">◇</span>
+              <p>Lengkapi data akun dan pilihan produk untuk melihat ringkasan.</p>
+            </div>
+            <div class="order-details" data-order-details hidden>
+              <div><span>Game</span><strong>Mobile Legends</strong></div>
+              <div><span>User ID</span><strong data-selected-user-id>—</strong></div>
+              <div><span>Zone ID</span><strong data-selected-server-id>—</strong></div>
+              <div><span>Produk</span><strong data-selected-product>—</strong></div>
+              <div><span>Pembayaran</span><strong data-selected-payment>—</strong></div>
+              <div class="order-total"><span>Total</span><strong data-selected-price>—</strong></div>
+            </div>
+            <button class="checkout-button" type="button" data-checkout disabled>Buat pesanan via WhatsApp</button>
+            <p class="checkout-message" data-checkout-message role="status" aria-live="polite"></p>
+            <p class="demo-note">Total harga dikonfirmasi admin di WhatsApp.</p>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <dialog class="order-confirm-dialog" aria-labelledby="order-confirm-title" data-order-confirm-dialog>
+    <div class="order-confirm-content">
+      <p class="eyebrow">PERIKSA KEMBALI</p>
+      <h2 id="order-confirm-title">Konfirmasi pesanan</h2>
+      <p class="confirm-intro">Pastikan data akun dan pesanan sudah benar. WhatsApp akan dibuka untuk konfirmasi harga dan pembayaran.</p>
+      <dl class="confirm-summary" data-confirm-summary></dl>
+      <p class="confirm-security">Jangan kirim kata sandi atau kode OTP Mobile Legends.</p>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" type="button" data-confirm-cancel>Kembali</button>
+        <button class="confirm-submit" type="button" data-confirm-submit>Konfirmasi & buka WhatsApp</button>
+      </div>
+    </div>
+  </dialog>
+@endsection
+
+@section('scripts')
+<script src="{{ asset('Welcome/site-loader.js') }}"></script>
+  <script src="{{ asset('Welcome/music-player.js') }}"></script>
+  <script src="{{ asset('Welcome/order-guide.js') }}"></script>
+  <script src="{{ asset('Welcome/mobile-legends.js') }}"></script>
+@endsection

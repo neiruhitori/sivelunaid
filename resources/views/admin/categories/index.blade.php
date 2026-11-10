@@ -105,6 +105,7 @@
 
     @push('styles')
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
         <style>#categories-table td { vertical-align: middle; } #categories-table td:nth-child(3) { font-weight: 600; } .dataTables_wrapper .dataTables_filter input { margin-left: .5rem; }</style>
     @endpush
@@ -163,7 +164,7 @@
                     $('#sort_order_custom').val('0');
                     $('#sort_order').val(0).removeAttr('max');
                     $('#sort-order-help').text('Urutan dimulai dari 0.');
-                    $('#is_active').val('1');
+                    $('#is_active').val('1').trigger('change');
                     $('#current-image-wrapper').addClass('d-none').removeClass('d-flex');
                     $('#image-remove-notice').addClass('d-none');
                     $('#current-image').attr('src', '');
@@ -211,7 +212,7 @@
                     $('#sort_order').attr('max', Math.max(0, {{ $categoryCount }} - 1));
                     $('#sort_order_custom').val('0');
                     $('#sort-order-help').text('Pilih posisi 0–' + Math.max(0, {{ $categoryCount }} - 1) + '. Kategori lain akan menyesuaikan urutannya.');
-                    $('#is_active').val(row.is_active ? '1' : '0');
+                    $('#is_active').val(row.is_active ? '1' : '0').trigger('change');
                     if (row.image) {
                         $('#current-image').attr('src', "{{ asset('storage') }}/" + row.image);
                         $('#current-image-wrapper').removeClass('d-none').addClass('d-flex');

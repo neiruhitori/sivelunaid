@@ -7,6 +7,9 @@
     <title>@yield('title', config('app.name', 'VelunaID Admin'))</title>
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/fontawesome-free/css/all.min.css') }}">
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/dist/css/adminlte.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2/css/select2.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+    <style>.select2-container { width: 100% !important; }</style>
     @stack('styles')
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
@@ -33,6 +36,22 @@
 <script src="{{ asset('AdminLTE-3.2.0/plugins/jquery/jquery.min.js') }}"></script>
 <script src="{{ asset('AdminLTE-3.2.0/plugins/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
 <script src="{{ asset('AdminLTE-3.2.0/dist/js/adminlte.min.js') }}"></script>
+<script src="{{ asset('AdminLTE-3.2.0/plugins/select2/js/select2.full.min.js') }}"></script>
 @stack('scripts')
+<script>
+    $(function () {
+        $('form select').each(function () {
+            if ($(this).hasClass('select2-hidden-accessible')) return;
+
+            const modal = $(this).closest('.modal');
+            $(this).select2({
+                theme: 'bootstrap4',
+                width: '100%',
+                dropdownParent: modal.length ? modal : $(document.body),
+                minimumResultsForSearch: 0,
+            });
+        });
+    });
+</script>
 </body>
 </html>
