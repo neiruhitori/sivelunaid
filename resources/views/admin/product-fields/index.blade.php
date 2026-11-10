@@ -1,0 +1,65 @@
+﻿<x-app-layout>
+    <x-slot name="header">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div><h1 class="m-0 text-dark">Product Fields</h1><small class="text-muted">Kelola data yang diminta dari pelanggan untuk setiap Product Group.</small></div>
+            <ol class="breadcrumb float-sm-right mb-0 bg-transparent"><li class="breadcrumb-item"><a href="{{ route('dashboard') }}">Dashboard</a></li><li class="breadcrumb-item active">Product Fields</li></ol>
+        </div>
+    </x-slot>
+
+    @if ($groups->isEmpty())
+        <div class="alert alert-warning"><i class="fas fa-exclamation-triangle mr-1"></i>Tambahkan Product Group terlebih dahulu sebelum membuat field. <a href="{{ route('admin.product-groups.index') }}" class="alert-link ml-1">Buka Product Group</a></div>
+    @endif
+
+    <div class="card card-primary card-outline">
+        <div class="card-header"><h3 class="card-title"><i class="fas fa-list-alt mr-2"></i>Daftar Product Fields</h3><div class="card-tools"><button type="button" id="btn-add-field" class="btn btn-primary btn-sm" @disabled($groups->isEmpty())><i class="fas fa-plus mr-1"></i> Tambah Field</button></div></div>
+        <div class="card-body"><div class="table-responsive"><table id="fields-table" class="table table-bordered table-hover table-striped w-100"><thead><tr><th>No.</th><th>Nama Field</th><th>Product Group</th><th>Field Key</th><th>Tipe Input</th><th>Placeholder</th><th>Required</th><th>Urutan</th><th style="min-width:130px">Aksi</th></tr></thead></table></div></div>
+    </div>
+
+    <div class="modal fade" id="field-modal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document"><div class="modal-content"><form id="field-form" method="POST">
+        @csrf
+        <input type="hidden" name="sort_order_custom" id="sort_order_custom" value="0">
+        <div class="modal-header"><div><h5 class="modal-title" id="modal-title">Tambah Product Field</h5><small class="text-muted">Field key dibuat otomatis dari nama field.</small></div><button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button></div>
+        <div class="modal-body"><div id="form-errors" class="alert alert-danger d-none" role="alert"></div>
+            <div class="form-group"><label for="product_group_id">Product Group <span class="text-danger">*</span></label><select class="form-control" id="product_group_id" name="product_group_id" style="width:100%" required><option value="">Pilih Product Group</option>@foreach($groups as $group)<option value="{{ $group->id }}">{{ $group->product?->name }} — {{ $group->name }}</option>@endforeach</select></div>
+            <div class="d-flex align-items-center justify-content-between mb-2"><label class="mb-0">Daftar Field <span class="text-danger">*</span></label><button type="button" id="btn-add-field-row" class="btn btn-outline-primary btn-sm"><i class="fas fa-plus mr-1"></i>Tambah Field</button></div>
+            <div id="field-items" class="field-items"></div>
+            <small class="form-text text-muted mb-3">Urutan mengikuti susunan baris. Field key otomatis diubah ke huruf kecil dan format snake_case.</small>
+            <div class="row"><div class="form-group col-md-6"><label for="sort_order">Urutan Tampilan</label><input class="form-control" id="sort_order" name="sort_order" type="number" min="0" step="1" value="0" required><small class="form-text text-muted">Urutan otomatis dilanjutkan dalam Product Group terpilih; ubah angka untuk menyisipkan.</small></div></div>
+        </div><div class="modal-footer justify-content-between"><button type="button" class="btn btn-default" data-dismiss="modal">Batal</button><button type="submit" id="btn-save-field" class="btn btn-primary"><i class="fas fa-save mr-1"></i><span>Simpan Field</span></button></div>
+    </form></div></div></div>
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2/css/select2.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
+        <style>#fields-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}.field-items{max-height:260px;overflow-y:auto;padding:.15rem .35rem .15rem 0}.field-item-card{border-left:3px solid #007bff}.field-item-card .card-header{padding:.45rem .75rem}.field-item-card .card-body{padding:.55rem .65rem}.field-item-card .form-group{margin-bottom:.25rem}@media(max-width:767.98px){.field-items{max-height:220px}.field-item-card .form-control{padding:.25rem .35rem;font-size:.85rem}.field-item-card label{font-size:.82rem}}</style>
+    @endpush
+    @push('scripts')
+        <script src="{{ asset('AdminLTE-3.2.0/plugins/datatables/jquery.dataTables.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
+        <script src="{{ asset('AdminLTE-3.2.0/plugins/select2/js/select2.full.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
+        <script>
+        $(function(){
+            const table=$('#fields-table').DataTable({processing:true,serverSide:true,autoWidth:false,ajax:"{{ route('admin.product-fields.data') }}",columns:[
+                {data:'DT_RowIndex',name:'DT_RowIndex',orderable:false,searchable:false},{data:'name',name:'product_fields.name'},{data:'group_name',name:'product_groups.name'},{data:'field_key',name:'product_fields.field_key'},{data:'type',name:'product_fields.type'},{data:'placeholder_display',name:'product_fields.placeholder'},{data:'required_status',name:'product_fields.is_required',searchable:false},{data:'sort_order',name:'product_fields.sort_order'},{data:'actions',name:'actions',orderable:false,searchable:false}
+            ],order:[[7,'asc']],language:{processing:'Memproses...',search:'Cari:',lengthMenu:'Tampilkan _MENU_ data',info:'Menampilkan _START_–_END_ dari _TOTAL_ data',infoEmpty:'Belum ada Product Field',infoFiltered:'(difilter dari _MAX_ total data)',zeroRecords:'Product Field tidak ditemukan',emptyTable:'Belum ada field. Silakan tambahkan data pertama.',paginate:{first:'Pertama',last:'Terakhir',next:'Berikutnya',previous:'Sebelumnya'}}});
+            const modal=$('#field-modal'),form=$('#field-form'),errors=$('#form-errors'),save=$('#btn-save-field');
+            $('#product_group_id').select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Cari Product Group',allowClear:true,width:'100%'});
+            function fieldKey(name){return String(name||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');}
+            function refreshFields(){const cards=$('#field-items .field-item-card');cards.each(function(index){$(this).find('.field-item-number').text('Field '+(index+1));$(this).find('[data-field-key]').each(function(){$(this).attr('name',`fields[${index}][${$(this).attr('data-field-key')}]`);});$(this).find('.field-remove').prop('disabled',cards.length===1);});$('#btn-add-field-row').prop('disabled',cards.length>=50);}
+            function addFieldInput(item={}){if($('#field-items .field-item-card').length>=50)return;const index=$('#field-items .field-item-card').length;const card=$('<div class="card card-outline card-primary field-item-card mb-2"></div>');const header=$('<div class="card-header d-flex align-items-center justify-content-between"></div>').append('<strong class="field-item-number"></strong>');header.append($('<button>',{type:'button',class:'btn btn-outline-danger btn-xs field-remove',title:'Hapus field'}).html('<i class="fas fa-trash"></i> Hapus'));const body=$('<div class="card-body"></div>');const row=$('<div class="row"></div>');
+                const makeField=(label,key,placeholder,kind,required)=>{const col=$('<div class="col-md-4"></div>');const group=$('<div class="form-group"></div>');group.append($('<label>').text(label));let input;if(kind==='select'){input=$('<select>',{class:'custom-select',name:`fields[${index}][${key}]`,required:!!required,'data-field-key':key});(key==='type'?[['text','Text'],['number','Number'],['email','Email'],['password','Password']]:[['1','Ya'],['0','Tidak']]).forEach(([value,text])=>input.append($('<option>',{value,text})));}else{input=$('<input>',{class:'form-control',name:`fields[${index}][${key}]`,type:'text',maxlength:key==='name'?100:255,placeholder,required:!!required,readonly:key==='field_key','data-field-key':key});}
+                    if(item[key]!==undefined&&item[key]!==null)input.val(String(item[key]));group.append(input);col.append(group);row.append(col);return input;};
+                const nameInput=makeField('Nama Field','name','Contoh: Username Roblox','text',true);const keyInput=makeField('Field Key','field_key','username_roblox','text',true);const typeInput=makeField('Tipe Input','type','','select',true);const placeholderInput=makeField('Placeholder','placeholder','Masukkan username Roblox','text',false);const requiredInput=makeField('Required','is_required','','select',true);if(!item.field_key)keyInput.val(fieldKey(item.name||''));nameInput.on('input',function(){keyInput.val(fieldKey(this.value));});body.append(row);card.append(header,body);$('#field-items').append(card);refreshFields();}
+            function reset(){form[0].reset();$('#product_group_id').val('').trigger('change');$('#field-items').empty();addFieldInput();errors.addClass('d-none').empty();$('#sort_order_custom').val('0');$('#sort_order').val(0);form.find('input[name="_method"]').remove();save.prop('disabled',false);}
+            $('#btn-add-field-row').on('click',()=>addFieldInput());$('#field-items').on('click','.field-remove',function(){$(this).closest('.field-item-card').remove();refreshFields();});
+            $('#btn-add-field').on('click',function(){reset();form.attr('action',"{{ route('admin.product-fields.store') }}");$('#modal-title').text('Tambah Product Field');save.find('span').text('Simpan Field');modal.modal('show');});
+            $('#sort_order').on('input',()=>$('#sort_order_custom').val('1'));modal.on('hidden.bs.modal',reset);
+            $('#fields-table').on('click','[data-action="edit"]',function(){const item=table.row($(this).closest('tr')).data();if(!item)return;reset();form.attr('action',"{{ route('admin.product-fields.update', ':id') }}".replace(':id',item.id));form.append('<input type="hidden" name="_method" value="PUT">');$('#modal-title').text('Edit Product Field');save.find('span').text('Simpan Perubahan');$('#product_group_id').val(String(item.product_group_id)).trigger('change');$('#field-items').empty();addFieldInput({name:item.name,field_key:item.field_key,type:item.type,placeholder:item.placeholder,is_required:item.is_required?'1':'0'});$('#sort_order').val(item.sort_order);$('#sort_order_custom').val('0');modal.modal('show');});
+            form.on('submit',function(e){e.preventDefault();errors.addClass('d-none').empty();save.prop('disabled',true);$.ajax({url:form.attr('action'),method:'POST',data:form.serialize(),headers:{Accept:'application/json'}}).done(function(resp){modal.modal('hide');table.ajax.reload(null,false);Swal.fire({icon:'success',title:'Berhasil',text:resp.message,timer:1700,showConfirmButton:false});}).fail(function(xhr){if(xhr.status===422&&xhr.responseJSON?.errors){errors.html(Object.values(xhr.responseJSON.errors).flat().map(msg=>`<div>${$('<div>').text(msg).html()}</div>`).join('')).removeClass('d-none');}else{Swal.fire({icon:'error',title:'Gagal',text:xhr.responseJSON?.message||'Product Field gagal disimpan.'});}}).always(()=>save.prop('disabled',false));});
+            $('#fields-table').on('click','[data-action="delete"]',function(){const item=table.row($(this).closest('tr')).data();if(!item)return;Swal.fire({icon:'warning',title:'Hapus Product Field?',text:`Field "${item.name}" akan dihapus.`,showCancelButton:true,confirmButtonText:'Ya, hapus',cancelButtonText:'Batal',confirmButtonColor:'#dc3545'}).then(result=>{if(!result.isConfirmed)return;$.ajax({url:"{{ route('admin.product-fields.destroy', ':id') }}".replace(':id',item.id),method:'POST',data:{_token:$('meta[name="csrf-token"]').attr('content'),_method:'DELETE'},headers:{Accept:'application/json'}}).done(resp=>{table.ajax.reload(null,false);Swal.fire({icon:'success',title:'Berhasil',text:resp.message,timer:1700,showConfirmButton:false});}).fail(xhr=>Swal.fire({icon:'error',title:'Gagal',text:xhr.responseJSON?.message||'Product Field gagal dihapus.'}));});});
+        });
+        </script>
+    @endpush
+</x-app-layout>

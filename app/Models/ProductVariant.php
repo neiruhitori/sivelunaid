@@ -15,12 +15,14 @@ class ProductVariant extends Model
         'name',
         'description',
         'price',
+        'discount_price',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
         'price' => 'decimal:2',
+        'discount_price' => 'decimal:2',
         'is_active' => 'boolean',
         'sort_order' => 'integer',
     ];

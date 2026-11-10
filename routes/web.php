@@ -79,9 +79,13 @@ Route::middleware(['auth', 'verified'])
         Route::resource('product-groups', ProductGroupsController::class);
 
         // Product Variants
+        Route::get('product-variants/data', [ProductVariantsController::class, 'data'])
+            ->name('product-variants.data');
         Route::resource('product-variants', ProductVariantsController::class);
 
         // Product Fields
+        Route::get('product-fields/data', [ProductFieldsController::class, 'data'])
+            ->name('product-fields.data');
         Route::resource('product-fields', ProductFieldsController::class);
     });
 
