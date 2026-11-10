@@ -58,6 +58,8 @@ Route::middleware(['auth', 'verified'])
             ->name('dashboard');
 
         // Categories
+        Route::get('categories/data', [CategoriesController::class, 'data'])
+            ->name('categories.data');
         Route::resource('categories', CategoriesController::class);
 
         // Products
@@ -71,7 +73,6 @@ Route::middleware(['auth', 'verified'])
 
         // Product Fields
         Route::resource('product-fields', ProductFieldsController::class);
-
     });
 
 /*
@@ -80,4 +81,4 @@ Route::middleware(['auth', 'verified'])
 |--------------------------------------------------------------------------
 */
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';
