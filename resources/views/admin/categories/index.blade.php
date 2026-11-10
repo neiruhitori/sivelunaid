@@ -41,6 +41,7 @@
                 <form id="category-form" method="POST" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="remove_image" id="remove_image" value="0">
+                    <input type="hidden" name="sort_order_custom" id="sort_order_custom" value="0">
                     <div class="modal-header">
                         <div>
                             <h5 class="modal-title" id="modal-title">Tambah Category</h5>
@@ -64,9 +65,14 @@
                                 <img id="current-image" src="" alt="Gambar kategori saat ini" class="img-thumbnail mr-3" style="width:72px;height:72px;object-fit:cover">
                                 <div><small class="d-block text-muted">Gambar saat ini</small><button type="button" id="btn-remove-current-image" class="btn btn-link btn-sm text-danger p-0">Hapus gambar</button></div>
                             </div>
+                            <div id="image-remove-notice" class="d-none mb-2">
+                                <span class="text-warning"><i class="fas fa-exclamation-circle mr-1"></i>Gambar akan dihapus saat disimpan.</span>
+                                <button type="button" id="btn-restore-current-image" class="btn btn-link btn-sm">Batalkan</button>
+                            </div>
                             <div id="new-image-preview-wrapper" class="d-none align-items-center mb-2">
                                 <img id="new-image-preview" src="" alt="Pratinjau gambar" class="img-thumbnail mr-2" style="width:48px;height:48px;object-fit:cover">
-                                <small id="new-image-name" class="text-muted text-truncate"></small>
+                                <small id="new-image-name" class="text-muted text-truncate mr-2"></small>
+                                <button type="button" id="btn-cancel-image" class="btn btn-outline-secondary btn-xs ml-auto" title="Batalkan pilihan gambar"><i class="fas fa-times mr-1"></i>Batalkan gambar</button>
                             </div>
                             <div class="custom-file">
                                 <input class="custom-file-input" type="file" id="image" name="image" accept="image/png,image/jpeg,image/webp">
@@ -77,7 +83,8 @@
                         <div class="row">
                             <div class="form-group col-sm-6">
                                 <label for="sort_order">Urutan Tampilan</label>
-                                <input class="form-control" type="number" id="sort_order" name="sort_order" value="0" min="0" required>
+                                <input class="form-control" type="number" id="sort_order" name="sort_order" value="0" min="0" step="1" required>
+                                <small id="sort-order-help" class="form-text text-muted">Urutan dimulai dari 0.</small>
                             </div>
                             <div class="form-group col-sm-6">
                                 <label for="is_active">Status Category</label>
@@ -153,21 +160,29 @@
                     form[0].reset();
                     errors.addClass('d-none').empty();
                     $('#remove_image').val('0');
-                    $('#sort_order').val(0);
+                    $('#sort_order_custom').val('0');
+                    $('#sort_order').val(0).removeAttr('max');
+                    $('#sort-order-help').text('Urutan dimulai dari 0.');
                     $('#is_active').val('1');
                     $('#current-image-wrapper').addClass('d-none').removeClass('d-flex');
+                    $('#image-remove-notice').addClass('d-none');
                     $('#current-image').attr('src', '');
                     clearPreview();
                     form.find('input[name="_method"]').remove();
                 }
                 function openAdd() {
                     editing = false; resetForm();
+                    $('#sort_order').attr('max', {{ max($categoryCount, $nextSortOrder) }}).val({{ $nextSortOrder }});
+                    $('#sort-order-help').text('Nomor berikutnya dari database: {{ $nextSortOrder }}. Ubah nomor untuk menyisipkan kategori.');
                     form.attr('action', storeUrl);
                     $('#modal-title').text('Tambah Category');
                     saveText.text('Simpan Category');
                     modal.modal('show');
                 }
                 $('#btn-add-category').on('click', openAdd);
+                $('#sort_order').on('input', function () {
+                    $('#sort_order_custom').val('1');
+                });
                 modal.on('hidden.bs.modal', resetForm);
 
                 $('#image').on('change', function () {
@@ -193,6 +208,9 @@
                     $('#name').val(row.name);
                     $('#description').val(row.description || '');
                     $('#sort_order').val(row.sort_order);
+                    $('#sort_order').attr('max', Math.max(0, {{ $categoryCount }} - 1));
+                    $('#sort_order_custom').val('0');
+                    $('#sort-order-help').text('Pilih posisi 0–' + Math.max(0, {{ $categoryCount }} - 1) + '. Kategori lain akan menyesuaikan urutannya.');
                     $('#is_active').val(row.is_active ? '1' : '0');
                     if (row.image) {
                         $('#current-image').attr('src', "{{ asset('storage') }}/" + row.image);
@@ -204,7 +222,17 @@
                 $('#btn-remove-current-image').on('click', function () {
                     $('#remove_image').val('1');
                     $('#current-image-wrapper').addClass('d-none').removeClass('d-flex');
+                    $('#image-remove-notice').removeClass('d-none');
                     Swal.fire({ icon: 'info', title: 'Gambar ditandai untuk dihapus', text: 'Gambar akan dihapus setelah perubahan disimpan.', timer: 1800, showConfirmButton: false });
+                });
+                $('#btn-restore-current-image').on('click', function () {
+                    $('#remove_image').val('0');
+                    $('#current-image-wrapper').removeClass('d-none').addClass('d-flex');
+                    $('#image-remove-notice').addClass('d-none');
+                });
+                $('#btn-cancel-image').on('click', function () {
+                    $('#image').val('');
+                    clearPreview();
                 });
 
                 form.on('submit', async function (event) {

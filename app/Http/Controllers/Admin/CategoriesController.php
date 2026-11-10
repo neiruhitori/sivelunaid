@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 use Yajra\DataTables\Facades\DataTables;
 
 class CategoriesController extends Controller
@@ -16,7 +18,12 @@ class CategoriesController extends Controller
      */
     public function index()
     {
-        return view('admin.categories.index');
+        $lastSortOrder = Category::max('sort_order');
+
+        return view('admin.categories.index', [
+            'categoryCount' => Category::count(),
+            'nextSortOrder' => $lastSortOrder === null ? 0 : (int) $lastSortOrder + 1,
+        ]);
     }
 
     public function data()
@@ -100,16 +107,53 @@ class CategoriesController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'is_active' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
+            'sort_order_custom' => ['nullable', 'boolean'],
         ]);
 
         $validated['slug'] = $this->generateSlug($validated['name']);
+        $customSortOrder = $request->boolean('sort_order_custom');
+        unset($validated['sort_order_custom']);
+        $uploadedImage = $request->hasFile('image')
+            ? $request->file('image')->store('categories', 'public')
+            : null;
 
-        if ($request->hasFile('image')) {
-            $validated['image'] = $request->file('image')
-                ->store('categories', 'public');
+        if ($uploadedImage) {
+            $validated['image'] = $uploadedImage;
         }
 
-        Category::create($validated);
+        try {
+            DB::transaction(function () use (&$validated, $customSortOrder) {
+                $categories = Category::query()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                $lastSortOrder = Category::max('sort_order');
+                $nextSortOrder = $lastSortOrder === null ? 0 : (int) $lastSortOrder + 1;
+
+                foreach ($categories as $index => $category) {
+                    if ($category->sort_order !== $index) {
+                        $category->update(['sort_order' => $index]);
+                    }
+                }
+
+                $requestedPosition = $customSortOrder ? (int) $validated['sort_order'] : $nextSortOrder;
+                $position = min($requestedPosition, $categories->count());
+                for ($index = $categories->count() - 1; $index >= $position; $index--) {
+                    $categories[$index]->update(['sort_order' => $index + 1]);
+                }
+
+                $validated['sort_order'] = $position;
+                Category::create($validated);
+            });
+        } catch (Throwable $exception) {
+            if ($uploadedImage) {
+                Storage::disk('public')->delete($uploadedImage);
+            }
+
+            throw $exception;
+        }
 
         return response()->json([
             'success' => true,
@@ -126,6 +170,7 @@ class CategoriesController extends Controller
             'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'is_active' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
+            'sort_order_custom' => ['nullable', 'boolean'],
             'remove_image' => ['nullable', 'boolean'],
         ]);
 
@@ -135,34 +180,65 @@ class CategoriesController extends Controller
         );
 
         $removeImage = $request->boolean('remove_image');
+        $customSortOrder = $request->boolean('sort_order_custom');
+        unset($validated['remove_image'], $validated['sort_order_custom']);
 
-        unset($validated['remove_image']);
+        $oldImage = $category->image;
+        $uploadedImage = $request->hasFile('image')
+            ? $request->file('image')->store('categories', 'public')
+            : null;
 
-        // Jika mengunggah gambar baru, gambar lama diganti.
-        if ($request->hasFile('image')) {
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-
-            $validated['image'] = $request->file('image')
-                ->store('categories', 'public');
-        }
-
-        // Jika tidak mengunggah gambar baru tetapi memilih hapus gambar.
-        elseif ($removeImage) {
-            if ($category->image) {
-                Storage::disk('public')->delete($category->image);
-            }
-
+        if ($uploadedImage) {
+            $validated['image'] = $uploadedImage;
+        } elseif ($removeImage) {
             $validated['image'] = null;
-        }
-
-        // Jika tidak ada perubahan gambar, pertahankan gambar lama.
-        else {
+        } else {
             unset($validated['image']);
         }
 
-        $category->update($validated);
+        try {
+            DB::transaction(function () use ($category, &$validated, $customSortOrder) {
+                $categories = Category::query()
+                    ->orderBy('sort_order')
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get();
+
+                $oldPosition = $categories->search(fn ($item) => $item->id === $category->id);
+                foreach ($categories as $index => $item) {
+                    if ($item->sort_order !== $index) {
+                        $item->update(['sort_order' => $index]);
+                    }
+                }
+
+                $lastPosition = max(0, $categories->count() - 1);
+                $requestedPosition = $customSortOrder ? (int) $validated['sort_order'] : $oldPosition;
+                $newPosition = min($requestedPosition, $lastPosition);
+
+                if ($newPosition < $oldPosition) {
+                    for ($index = $oldPosition - 1; $index >= $newPosition; $index--) {
+                        $categories[$index]->update(['sort_order' => $index + 1]);
+                    }
+                } elseif ($newPosition > $oldPosition) {
+                    for ($index = $oldPosition + 1; $index <= $newPosition; $index++) {
+                        $categories[$index]->update(['sort_order' => $index - 1]);
+                    }
+                }
+
+                $validated['sort_order'] = $newPosition;
+                $category->update($validated);
+            });
+        } catch (Throwable $exception) {
+            if ($uploadedImage) {
+                Storage::disk('public')->delete($uploadedImage);
+            }
+
+            throw $exception;
+        }
+
+        if ($oldImage && ($uploadedImage || $removeImage)) {
+            Storage::disk('public')->delete($oldImage);
+        }
 
         return response()->json([
             'success' => true,
@@ -180,11 +256,26 @@ class CategoriesController extends Controller
             ], 422);
         }
 
-        if ($category->image) {
-            Storage::disk('public')->delete($category->image);
-        }
+        $image = $category->image;
+        DB::transaction(function () use ($category) {
+            $category->delete();
 
-        $category->delete();
+            $categories = Category::query()
+                ->orderBy('sort_order')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($categories as $index => $item) {
+                if ($item->sort_order !== $index) {
+                    $item->update(['sort_order' => $index]);
+                }
+            }
+        });
+
+        if ($image) {
+            Storage::disk('public')->delete($image);
+        }
 
         return response()->json([
             'success' => true,
