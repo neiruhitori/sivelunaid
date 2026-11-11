@@ -29,7 +29,8 @@ class ProductGroupsController extends Controller
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
-            ->addColumn('description', fn (ProductGroup $group) => $group->description ?: '-')
+            ->addColumn('description', fn (ProductGroup $group) => $group->description)
+            ->addColumn('banner_description', fn (ProductGroup $group) => $group->banner_description)
             ->addColumn('status', fn (ProductGroup $group) => $group->is_active
                 ? '<span class="badge badge-success">Aktif</span>'
                 : '<span class="badge badge-secondary">Nonaktif</span>')
@@ -134,15 +135,29 @@ class ProductGroupsController extends Controller
 
     private function validateGroup(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'names' => ['required', 'array', 'min:1', 'max:50'],
             'names.*' => ['required', 'string', 'max:150'],
-            'description' => ['nullable', 'string'],
+            'description_items' => ['nullable', 'array', 'max:100'],
+            'description_items.*' => ['nullable', 'string', 'max:2000'],
+            'banner_description' => ['nullable', 'string'],
             'is_active' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'sort_order_custom' => ['nullable', 'boolean'],
         ]);
+
+        $descriptionItems = collect($validated['description_items'] ?? [])
+            ->map(fn ($item) => trim((string) $item))
+            ->filter()
+            ->values();
+
+        unset($validated['description_items']);
+        $validated['description'] = $descriptionItems->isNotEmpty()
+            ? $descriptionItems->implode("\n")
+            : null;
+
+        return $validated;
     }
 
     private function orderedGroups(int $productId)

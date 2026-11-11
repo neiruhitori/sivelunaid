@@ -117,12 +117,15 @@
                         @forelse ($category->products as $product)
                             @php
                                 $productSlug = \Illuminate\Support\Str::slug($product->slug ?: $product->name);
-                                $productUrl = match ($productSlug) {
+                                $fallbackProductUrl = match ($productSlug) {
                                     'roblox' => route('welcome.roblox'),
                                     'mobile-legends' => route('welcome.mobile-legends'),
                                     default => 'https://wa.me/6738386518?text=' .
                                         rawurlencode('Halo Veluna, saya tertarik dengan produk ' . $product->name),
                                 };
+                                $productUrl = $product->groups->count() === 1
+                                    ? route('welcome.product-group', $product->groups->first())
+                                    : ($product->groups->count() > 1 ? '#' : $fallbackProductUrl);
                                 $fallbackImage = match ($productSlug) {
                                     'roblox' => asset('Welcome/image/iconroblox.png'),
                                     'mobile-legends' => asset('Welcome/image/iconml.png'),
@@ -134,8 +137,8 @@
                             @endphp
                             <article class="product-card">
                                 <a class="product-image catalog-product-image" href="{{ $productUrl }}"
-                                    @if ($productSlug === 'roblox') data-roblox-methods @endif
-                                    @if ($product->groups->count() > 1) data-product-groups="{{ $product->groups->map(fn ($group) => ['name' => $group->name, 'description' => $group->description])->values()->toJson() }}" data-product-name="{{ $product->name }}" @endif
+                                    @if ($productSlug === 'roblox' && $product->groups->isEmpty()) data-roblox-methods @endif
+                                    @if ($product->groups->count() > 1) data-product-groups="{{ $product->groups->map(fn ($group) => ['name' => $group->name, 'url' => route('welcome.product-group', $group)])->values()->toJson() }}" data-product-name="{{ $product->name }}" @endif
                                     aria-label="Lihat {{ $product->name }}">
                                     @if ($catalogImage)
                                         <span class="catalog-product-backdrop"
@@ -155,9 +158,9 @@
                                     <p class="product-detail">{{ $product->description ?: 'Produk pilihan Veluna Store' }}
                                     </p>
                                     <a class="product-cta" href="{{ $productUrl }}"
-                                        @if ($productSlug === 'roblox') data-roblox-methods @endif
-                                        @if ($product->groups->count() > 1) data-product-groups="{{ $product->groups->map(fn ($group) => ['name' => $group->name, 'description' => $group->description])->values()->toJson() }}" data-product-name="{{ $product->name }}" @endif>
-                                        {{ in_array($productSlug, ['roblox', 'mobile-legends'], true) ? 'Lihat produk' : 'Tanya produk' }}
+                                        @if ($productSlug === 'roblox' && $product->groups->isEmpty()) data-roblox-methods @endif
+                                        @if ($product->groups->count() > 1) data-product-groups="{{ $product->groups->map(fn ($group) => ['name' => $group->name, 'url' => route('welcome.product-group', $group)])->values()->toJson() }}" data-product-name="{{ $product->name }}" @endif>
+                                        {{ $product->groups->isNotEmpty() || in_array($productSlug, ['roblox', 'mobile-legends'], true) ? 'Lihat produk' : 'Tanya produk' }}
                                         <span aria-hidden="true">&rarr;</span>
                                     </a>
                                 </div>

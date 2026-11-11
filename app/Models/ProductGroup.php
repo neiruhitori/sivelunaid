@@ -15,6 +15,7 @@ class ProductGroup extends Model
         'product_id',
         'name',
         'description',
+        'banner_description',
         'is_active',
         'sort_order',
     ];

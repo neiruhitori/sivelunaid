@@ -3,6 +3,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Models\Category;
+use App\Models\Product;
+use App\Http\Controllers\WelcomeProductController;
 
 // Controllers
 use App\Http\Controllers\ProfileController;
@@ -41,10 +43,23 @@ Route::get('/', function () {
     return view('welcome.index', compact('categories'));
 })->name('welcome.index');
 
-Route::view('/mobile-legends', 'welcome.mobile-legends')->name('welcome.mobile-legends');
-Route::view('/roblox', 'welcome.roblox')->name('welcome.roblox');
-Route::view('/roblox-vilog', 'welcome.roblox-vilog')->name('welcome.roblox-vilog');
-Route::view('/roblox-gig', 'welcome.roblox-gig')->name('welcome.roblox-gig');
+Route::get('/robux/{productGroup}', [WelcomeProductController::class, 'show'])
+    ->whereNumber('productGroup')
+    ->name('welcome.product-group');
+
+// Backward-compatible links send visitors to the first active group for each game.
+$redirectToFirstProductGroup = static function (string $slug) {
+    $group = Product::query()->where('slug', $slug)->where('is_active', true)
+        ->with(['groups' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')->orderBy('id')])
+        ->first()?->groups->first();
+
+    return $group ? redirect()->route('welcome.product-group', $group) : redirect()->route('welcome.index');
+};
+
+Route::get('/mobile-legends', fn () => $redirectToFirstProductGroup('mobile-legends'))->name('welcome.mobile-legends');
+Route::get('/roblox', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox');
+Route::get('/roblox-vilog', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox-vilog');
+Route::get('/roblox-gig', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox-gig');
 
 /*
 |--------------------------------------------------------------------------

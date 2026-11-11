@@ -27,6 +27,7 @@ class ProductFieldsController extends Controller
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
+            ->addColumn('type_display', fn (ProductField $field) => $field->type === 'backup_code' ? 'Backup Code' : ucfirst($field->type))
             ->addColumn('required_status', fn (ProductField $field) => $field->is_required
                 ? '<span class="badge badge-danger">Ya</span>'
                 : '<span class="badge badge-secondary">Tidak</span>')
@@ -136,16 +137,25 @@ class ProductFieldsController extends Controller
 
     private function validateFields(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'product_group_id' => ['required', 'integer', 'exists:product_groups,id'],
             'fields' => ['required', 'array', 'min:1', 'max:50'],
             'fields.*.name' => ['required', 'string', 'max:100'],
-            'fields.*.type' => ['required', 'in:text,number,email,password'],
+            'fields.*.type' => ['required', 'in:text,number,email,password,backup_code'],
             'fields.*.placeholder' => ['nullable', 'string', 'max:255'],
             'fields.*.is_required' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'sort_order_custom' => ['nullable', 'boolean'],
         ]);
+
+        foreach ($validated['fields'] as &$field) {
+            if ($field['type'] === 'backup_code') {
+                $field['is_required'] = false;
+            }
+        }
+        unset($field);
+
+        return $validated;
     }
 
     private function uniqueKeys(int $groupId, array $items, ?int $ignoreId = null): array
