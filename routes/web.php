@@ -24,6 +24,12 @@ Route::get('/', function () {
         ->where('is_active', true)
         ->with(['products' => function ($query) {
             $query->where('is_active', true)
+                ->with(['groups' => function ($groupQuery) {
+                    $groupQuery->where('is_active', true)
+                        ->select(['id', 'product_id', 'name', 'description', 'sort_order'])
+                        ->orderBy('sort_order')
+                        ->orderBy('id');
+                }])
                 ->select(['id', 'category_id', 'name', 'slug', 'description', 'image', 'sort_order'])
                 ->orderBy('sort_order')
                 ->orderBy('id');
