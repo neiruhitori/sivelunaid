@@ -88,92 +88,65 @@
       </div>
 
       <div class="category-pills" id="kategori" role="tablist" aria-label="Kategori produk">
-        <button class="pill active" id="tab-game" type="button" role="tab" aria-selected="true"
-          aria-controls="panel-game" data-product-tab="game">Game <span>2 produk</span></button>
-        <button class="pill" id="tab-premium" type="button" role="tab" aria-selected="false"
-          aria-controls="panel-premium" data-product-tab="premium" tabindex="-1">Aplikasi Premium <span>4
-            pilihan</span></button>
+        @foreach ($categories as $index => $category)
+          <button class="pill category-pill {{ $index === 0 ? 'active' : '' }}" id="tab-category-{{ $category->id }}" type="button" role="tab"
+            aria-selected="{{ $index === 0 ? 'true' : 'false' }}" aria-controls="panel-category-{{ $category->id }}"
+            data-product-tab="category-{{ $category->id }}" tabindex="{{ $index === 0 ? '0' : '-1' }}"
+            style="--category-image: {{ $category->image ? 'url(' . json_encode(asset('storage/' . $category->image)) . ')' : 'none' }}">
+            <span class="pill-name">{{ $category->name }}</span>
+            <span class="pill-count">{{ $category->products->count() }} produk</span>
+          </button>
+        @endforeach
       </div>
       <p class="search-status" data-search-status role="status" aria-live="polite" hidden></p>
 
-      <div class="product-panel" id="panel-game" role="tabpanel" aria-labelledby="tab-game" data-product-panel="game">
-        <h3 class="search-panel-heading" hidden>Game</h3>
-        <div class="product-grid game-grid">
-          <article class="product-card">
-            <a class="product-image game-image roblox-image" href="{{ route('welcome.roblox') }}" data-roblox-methods
-              aria-label="Pilih metode top up Roblox"><img class="game-mark game-logo" src="{{ asset('Welcome/image/iconroblox.png') }}"
-                alt=""><b>GAME</b></a>
-            <div class="product-info">
-              <p class="product-category">GAME</p>
-              <h3>Roblox</h3>
-              <p class="product-detail">Robux dan item pilihan</p><a class="product-cta" href="{{ route('welcome.roblox') }}"
-                data-roblox-methods>Pilih metode <span aria-hidden="true">→</span></a>
-            </div>
-          </article>
-          <article class="product-card">
-            <a class="product-image game-image ml-image" href="{{ route('welcome.mobile-legends') }}"
-              aria-label="Top up Mobile Legends"><img class="game-mark game-logo" src="{{ asset('Welcome/image/iconml.png') }}"
-                alt=""><b>GAME</b></a>
-            <div class="product-info">
-              <p class="product-category">GAME</p>
-              <h3>Mobile Legends</h3>
-              <p class="product-detail">Diamond dan item pilihan</p><a class="product-cta"
-                href="{{ route('welcome.mobile-legends') }}">Lihat produk <span aria-hidden="true">→</span></a>
-            </div>
-          </article>
+      @forelse ($categories as $index => $category)
+        <div class="product-panel" id="panel-category-{{ $category->id }}" role="tabpanel"
+          aria-labelledby="tab-category-{{ $category->id }}" data-product-panel="category-{{ $category->id }}" @if($index > 0) hidden @endif>
+          <h3 class="search-panel-heading" hidden>{{ $category->name }}</h3>
+          <div class="product-grid catalog-product-grid {{ $category->products->count() <= 2 ? 'game-grid' : '' }}">
+            @forelse ($category->products as $product)
+              @php
+                $productSlug = \Illuminate\Support\Str::slug($product->slug ?: $product->name);
+                $productUrl = match ($productSlug) {
+                    'roblox' => route('welcome.roblox'),
+                    'mobile-legends' => route('welcome.mobile-legends'),
+                    default => 'https://wa.me/6738386518?text=' . rawurlencode('Halo Veluna, saya tertarik dengan produk ' . $product->name),
+                };
+                $fallbackImage = match ($productSlug) {
+                    'roblox' => asset('Welcome/image/iconroblox.png'),
+                    'mobile-legends' => asset('Welcome/image/iconml.png'),
+                    default => null,
+                };
+              @endphp
+              <article class="product-card">
+                <a class="product-image catalog-product-image" href="{{ $productUrl }}" @if($productSlug === 'roblox') data-roblox-methods @endif aria-label="Lihat {{ $product->name }}">
+                  @if ($product->image)
+                    <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->name }}">
+                  @elseif ($fallbackImage)
+                    <img src="{{ $fallbackImage }}" alt="{{ $product->name }}">
+                  @else
+                    <span class="catalog-product-mark" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($product->name, 0, 1)) }}</span>
+                  @endif
+                  <b>{{ $category->name }}</b>
+                </a>
+                <div class="product-info">
+                  <p class="product-category">{{ $category->name }}</p>
+                  <h3>{{ $product->name }}</h3>
+                  <p class="product-detail">{{ $product->description ?: 'Produk pilihan Veluna Store' }}</p>
+                  <a class="product-cta" href="{{ $productUrl }}" @if($productSlug === 'roblox') data-roblox-methods @endif>
+                    {{ in_array($productSlug, ['roblox', 'mobile-legends'], true) ? 'Lihat produk' : 'Tanya produk' }} <span aria-hidden="true">&rarr;</span>
+                  </a>
+                </div>
+              </article>
+            @empty
+              <p class="catalog-empty">Belum ada produk aktif di kategori ini.</p>
+            @endforelse
+          </div>
         </div>
-      </div>
-
-      <div class="product-panel" id="panel-premium" role="tabpanel" aria-labelledby="tab-premium"
-        data-product-panel="premium" hidden>
-        <h3 class="search-panel-heading" hidden>Aplikasi Premium</h3>
-        <div class="product-grid premium-grid">
-          <article class="product-card">
-            <a class="product-image premium-image" href="#" aria-label="Area gambar aplikasi premium 1"><span
-                class="premium-mark">01</span><span class="image-label">Area gambar aplikasi</span><b>SEGERA
-                HADIR</b></a>
-            <div class="product-info">
-              <p class="product-category">APLIKASI PREMIUM</p>
-              <h3>Nama aplikasi</h3>
-              <p class="product-detail">Detail produk menyusul</p><a class="product-cta" href="#">Lihat detail <span
-                  aria-hidden="true">→</span></a>
-            </div>
-          </article>
-          <article class="product-card">
-            <a class="product-image premium-image premium-tone-two" href="#"
-              aria-label="Area gambar aplikasi premium 2"><span class="premium-mark">02</span><span
-                class="image-label">Area gambar aplikasi</span><b>SEGERA HADIR</b></a>
-            <div class="product-info">
-              <p class="product-category">APLIKASI PREMIUM</p>
-              <h3>Nama aplikasi</h3>
-              <p class="product-detail">Detail produk menyusul</p><a class="product-cta" href="#">Lihat detail <span
-                  aria-hidden="true">→</span></a>
-            </div>
-          </article>
-          <article class="product-card">
-            <a class="product-image premium-image premium-tone-three" href="#"
-              aria-label="Area gambar aplikasi premium 3"><span class="premium-mark">03</span><span
-                class="image-label">Area gambar aplikasi</span><b>SEGERA HADIR</b></a>
-            <div class="product-info">
-              <p class="product-category">APLIKASI PREMIUM</p>
-              <h3>Nama aplikasi</h3>
-              <p class="product-detail">Detail produk menyusul</p><a class="product-cta" href="#">Lihat detail <span
-                  aria-hidden="true">→</span></a>
-            </div>
-          </article>
-          <article class="product-card">
-            <a class="product-image premium-image premium-tone-four" href="#"
-              aria-label="Area gambar aplikasi premium 4"><span class="premium-mark">04</span><span
-                class="image-label">Area gambar aplikasi</span><b>SEGERA HADIR</b></a>
-            <div class="product-info">
-              <p class="product-category">APLIKASI PREMIUM</p>
-              <h3>Nama aplikasi</h3>
-              <p class="product-detail">Detail produk menyusul</p><a class="product-cta" href="#">Lihat detail <span
-                  aria-hidden="true">→</span></a>
-            </div>
-          </article>
-        </div>
-      </div>
+      @empty
+        <p class="catalog-empty">Kategori produk akan segera hadir.</p>
+      @endforelse
     </section>
 
     <section class="promo page-width">

@@ -107,7 +107,16 @@
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
-        <style>#categories-table td { vertical-align: middle; } #categories-table td:nth-child(3) { font-weight: 600; } .dataTables_wrapper .dataTables_filter input { margin-left: .5rem; }</style>
+        <style>
+            #categories-table td { vertical-align: middle; }
+            #categories-table td:nth-child(3) { font-weight: 600; }
+            .dataTables_wrapper .dataTables_filter input { margin-left: .5rem; }
+            .category-image-soft { position:relative; width:56px; height:56px; display:inline-flex; align-items:flex-end; justify-content:flex-end; padding:5px; overflow:hidden; border:1px solid rgba(111,66,193,.14); border-radius:13px; background-color:#f3eff8; background-position:center; background-size:cover; box-shadow:0 3px 10px rgba(45,30,60,.12); color:#fff; cursor:zoom-in; transition:transform .18s ease,box-shadow .18s ease; }
+            .category-image-soft:hover { transform:translateY(-2px); box-shadow:0 6px 15px rgba(45,30,60,.2); }
+            .category-image-soft.is-empty { align-items:center; justify-content:center; border-style:dashed; background:linear-gradient(145deg,#f7f4fa,#ece6f2); color:#9b8ba9; cursor:default; box-shadow:none; }
+            .category-image-soft-icon { width:21px; height:21px; display:grid; place-items:center; border:1px solid rgba(255,255,255,.5); border-radius:7px; background:rgba(44,32,55,.42); font-size:10px; }
+            .swal-category-image { border-radius:12px; }
+        </style>
     @endpush
 
     @push('scripts')
@@ -218,6 +227,19 @@
                         $('#current-image-wrapper').removeClass('d-none').addClass('d-flex');
                     }
                     modal.modal('show');
+                });
+
+                $('#categories-table').on('click', '[data-category-image-preview]', function () {
+                    const imageUrl = $(this).data('image-url');
+                    const imageName = $(this).data('image-name');
+                    Swal.fire({
+                        title: imageName,
+                        imageUrl: imageUrl,
+                        imageAlt: imageName,
+                        imageWidth: 560,
+                        showConfirmButton: false,
+                        customClass: { image: 'swal-category-image' }
+                    });
                 });
 
                 $('#btn-remove-current-image').on('click', function () {

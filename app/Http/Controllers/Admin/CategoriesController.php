@@ -47,7 +47,7 @@ class CategoriesController extends Controller
             ->addColumn('image_preview', function ($category) {
                 if (!$category->image) {
                     return '
-            <div class="d-flex align-items-center justify-content-center rounded bg-light text-muted" style="width:48px;height:48px">
+            <div class="category-image-soft is-empty" aria-label="Belum ada gambar category">
                 <i class="far fa-image"></i>
             </div>
         ';
@@ -56,15 +56,9 @@ class CategoriesController extends Controller
                 $url = asset('storage/' . $category->image);
 
                 return '
-        <div class="d-flex align-items-center justify-content-center overflow-hidden rounded border">
-            <img
-                src="' . e($url) . '"
-                alt="' . e($category->name) . '"
-                width="48"
-                height="48"
-                style="width:48px;height:48px;max-width:48px;max-height:48px;object-fit:cover;display:block;"
-            >
-        </div>
+        <button type="button" class="category-image-soft" data-category-image-preview data-image-url="' . e($url) . '" data-image-name="' . e($category->name) . '" aria-label="Lihat gambar ' . e($category->name) . '" style="background-image:linear-gradient(145deg,rgba(255,255,255,.08),rgba(111,66,193,.12)),url(&quot;' . e($url) . '&quot;)">
+            <span class="category-image-soft-icon"><i class="fas fa-expand-alt"></i></span>
+        </button>
     ';
             })
 

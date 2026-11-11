@@ -2,6 +2,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Models\Category;
 
 // Controllers
 use App\Http\Controllers\ProfileController;
@@ -19,7 +20,19 @@ use App\Http\Controllers\Admin\ProductFieldsController;
 */
 
 Route::get('/', function () {
-    return view('welcome.index');
+    $categories = Category::query()
+        ->where('is_active', true)
+        ->with(['products' => function ($query) {
+            $query->where('is_active', true)
+                ->select(['id', 'category_id', 'name', 'slug', 'description', 'image', 'sort_order'])
+                ->orderBy('sort_order')
+                ->orderBy('id');
+        }])
+        ->orderBy('sort_order')
+        ->orderBy('id')
+        ->get();
+
+    return view('welcome.index', compact('categories'));
 })->name('welcome.index');
 
 Route::view('/mobile-legends', 'welcome.mobile-legends')->name('welcome.mobile-legends');
