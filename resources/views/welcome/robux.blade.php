@@ -118,6 +118,7 @@
                                             </label>
                                             <input id="product-field-{{ $field->id }}" type="{{ $inputType }}"
                                                 name="{{ $field->field_key }}" data-order-field
+                                                @if (str_contains(strtolower($field->field_key), 'username')) data-username-field @endif
                                                 data-field-label="{{ $field->name }}"
                                                 placeholder="{{ $field->placeholder ?: $field->name }}"
                                                 @if ($field->is_required) required @endif
@@ -154,12 +155,12 @@
                             <p>Pilih paket dan lengkapi data pesanan untuk melihat ringkasan.</p>
                         </div>
                         <div class="order-details" data-order-details hidden>
-                            <div><span>Produk</span><strong>{{ $productGroup->product->name }}</strong></div>
-                            <div><span>Pilihan</span><strong>{{ $productGroup->name }}</strong></div>
-                            <div><span>Paket</span><strong data-summary-variant>—</strong></div>
-                            <div data-summary-fields></div>
-                            <div><span>Pembayaran</span><strong data-summary-payment>—</strong></div>
-                            <div class="order-total"><span>Total</span><strong data-summary-price>—</strong></div>
+                            <div class="order-detail-row"><span>Produk</span><strong>{{ $productGroup->product->name }}</strong></div>
+                            <div class="order-detail-row"><span>Pilihan</span><strong>{{ $productGroup->name }}</strong></div>
+                            <div class="order-detail-row"><span>Paket</span><strong data-summary-variant>—</strong></div>
+                            <div class="order-summary-fields" data-summary-fields></div>
+                            <div class="order-detail-row"><span>Pembayaran</span><strong data-summary-payment>—</strong></div>
+                            <div class="order-detail-row order-total"><span>Total</span><strong data-summary-price>—</strong></div>
                         </div>
                         <button class="checkout-button" type="button" data-order-checkout disabled>Buat pesanan via
                             WhatsApp</button>
