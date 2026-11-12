@@ -16,9 +16,9 @@
                 ['label' => 'Pesanan', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*', 'icon' => 'fas fa-receipt'],
                 ['label' => 'Category', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*', 'icon' => 'fas fa-th-large'],
                 ['label' => 'Product', 'route' => 'admin.products.index', 'active' => 'admin.products.*', 'icon' => 'fas fa-box'],
-                ['label' => 'Product Group', 'route' => 'admin.product-groups.index', 'active' => 'admin.product-groups.*', 'icon' => 'fas fa-layer-group'],
-                ['label' => 'Product Variant', 'route' => 'admin.product-variants.index', 'active' => 'admin.product-variants.*', 'icon' => 'fas fa-boxes'],
-                ['label' => 'Produk Field', 'route' => 'admin.product-fields.index', 'active' => 'admin.product-fields.*', 'icon' => 'fas fa-list-alt'],
+                ['label' => 'List Product', 'route' => 'admin.product-groups.index', 'active' => 'admin.product-groups.*', 'icon' => 'fas fa-layer-group'],
+                ['label' => 'Pricelist Product', 'route' => 'admin.product-variants.index', 'active' => 'admin.product-variants.*', 'icon' => 'fas fa-boxes'],
+                ['label' => 'Data Customer', 'route' => 'admin.product-fields.index', 'active' => 'admin.product-fields.*', 'icon' => 'fas fa-list-alt'],
             ];
         @endphp
         <nav class="mt-2" aria-label="Menu admin">
