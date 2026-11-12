@@ -34,7 +34,7 @@
                 <table id="products-table" class="table table-bordered table-hover table-striped w-100">
                     <thead>
                         <tr>
-                            <th>No.</th><th>Kategori</th><th>Gambar</th><th>Nama Product</th><th>Slug</th>
+                            <th>No.</th><th class="d-none"></th><th>Kategori</th><th>Gambar</th><th>Nama Product</th><th>Slug</th>
                             <th>Unggulan</th><th>Status</th><th>Urutan</th><th>Dibuat</th><th style="min-width:130px">Aksi</th>
                         </tr>
                     </thead>
@@ -144,6 +144,7 @@
                     ajax: "{{ route('admin.products.data') }}",
                     columns: [
                         { data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false },
+                        { data: 'category_id', name: 'products.category_id', visible: false, searchable: false },
                         { data: 'category_name', name: 'categories.name' },
                         { data: 'image_preview', name: 'image', orderable: false, searchable: false },
                         { data: 'name', name: 'products.name' },
@@ -154,7 +155,21 @@
                         { data: 'created_at', name: 'products.created_at' },
                         { data: 'actions', name: 'actions', orderable: false, searchable: false }
                     ],
-                    order: [[7, 'asc']],
+                    orderFixed: { pre: [[1, 'asc']] },
+                    order: [[8, 'asc']],
+                    drawCallback: function () {
+                        const rows = this.api().rows({ page: 'current' });
+                        let previousCategory = null;
+                        rows.every(function () {
+                            const product = this.data();
+                            if (String(product.category_id) === String(previousCategory)) return;
+                            const heading = $('<td/>', { colspan: 10 }).append(
+                                $('<strong/>').text('Kategori #' + product.category_id + ' · ' + product.category_name)
+                            );
+                            $(this.node()).before($('<tr/>', { class: 'relation-group-row bg-light' }).append(heading));
+                            previousCategory = product.category_id;
+                        });
+                    },
                     language: {
                         processing: 'Memproses...', search: 'Cari:', lengthMenu: 'Tampilkan _MENU_ data',
                         info: 'Menampilkan _START_–_END_ dari _TOTAL_ data', infoEmpty: 'Belum ada data produk',

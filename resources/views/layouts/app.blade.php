@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/dist/css/adminlte.min.css') }}">
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2/css/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
-    <style>.select2-container { width: 100% !important; }</style>
+    <style>
+        .select2-container { width: 100% !important; }
+        .relation-group-row td { background: #eef3fb !important; border-top: 2px solid #cbd8eb; color: #34445d; }
+    </style>
     @stack('styles')
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">

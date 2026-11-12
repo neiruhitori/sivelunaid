@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Category;
 use App\Models\Product;
 use App\Http\Controllers\WelcomeProductController;
+use App\Http\Controllers\Admin\StorefrontController;
 
 // Controllers
 use App\Http\Controllers\ProfileController;
@@ -21,6 +22,7 @@ use App\Http\Controllers\Admin\ProductFieldsController;
 |--------------------------------------------------------------------------
 */
 
+Route::middleware('storefront.open')->group(function () {
 Route::get('/', function () {
     $categories = Category::query()
         ->where('is_active', true)
@@ -60,6 +62,7 @@ Route::get('/mobile-legends', fn () => $redirectToFirstProductGroup('mobile-lege
 Route::get('/roblox', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox');
 Route::get('/roblox-vilog', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox-vilog');
 Route::get('/roblox-gig', fn () => $redirectToFirstProductGroup('roblox'))->name('welcome.roblox-gig');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -95,6 +98,9 @@ Route::middleware(['auth', 'verified'])
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index'])
             ->name('dashboard');
+
+        Route::post('/storefront/status', [StorefrontController::class, 'update'])
+            ->name('storefront.status');
 
         // Categories
         Route::get('categories/data', [CategoriesController::class, 'data'])

@@ -11,6 +11,13 @@
         </div>
     </x-slot>
 
+    @if (session('status'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ session('status') }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
+        </div>
+    @endif
+
     <div class="row">
         <div class="col-lg-3 col-6">
             <div class="small-box bg-info">
@@ -38,6 +45,35 @@
                 <div class="inner"><h3>{{ $productVariantCount }}</h3><p>Product Variant</p></div>
                 <div class="icon"><i class="fas fa-boxes"></i></div>
                 <a href="{{ route('admin.product-variants.index') }}" class="small-box-footer">Kelola varian <i class="fas fa-arrow-circle-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card {{ $storefrontOpen ? 'card-success' : 'card-danger' }}">
+                <div class="card-header">
+                    <h3 class="card-title"><i class="fas fa-store mr-2"></i>Status Website</h3>
+                    <div class="card-tools">
+                        <span class="badge {{ $storefrontOpen ? 'badge-success' : 'badge-danger' }}">
+                            {{ $storefrontOpen ? 'OPEN' : 'CLOSED' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body d-flex flex-wrap align-items-center justify-content-between">
+                    <div class="mr-3 mb-2">
+                        <strong>{{ $storefrontOpen ? 'Website sedang dibuka.' : 'Website sedang ditutup.' }}</strong>
+                        <div class="text-muted">{{ $storefrontOpen ? 'Pengunjung dapat membuka semua halaman Welcome.' : 'Semua halaman Welcome dikunci untuk pengunjung.' }}</div>
+                    </div>
+                    <form method="POST" action="{{ route('admin.storefront.status') }}">
+                        @csrf
+                        <input type="hidden" name="is_open" value="{{ $storefrontOpen ? 0 : 1 }}">
+                        <button type="submit" class="btn {{ $storefrontOpen ? 'btn-danger' : 'btn-success' }}">
+                            <i class="fas {{ $storefrontOpen ? 'fa-lock' : 'fa-lock-open' }} mr-1"></i>
+                            {{ $storefrontOpen ? 'Close Website' : 'Open Website' }}
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>

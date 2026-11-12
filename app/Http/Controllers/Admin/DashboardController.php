@@ -8,6 +8,7 @@ use App\Models\Dashboard;
 use App\Models\Product;
 use App\Models\ProductGroup;
 use App\Models\ProductVariant;
+use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -22,6 +23,7 @@ class DashboardController extends Controller
             'productCount' => Product::count(),
             'productGroupCount' => ProductGroup::count(),
             'productVariantCount' => ProductVariant::count(),
+            'storefrontOpen' => SiteSetting::storefrontIsOpen(),
         ]);
     }
 
