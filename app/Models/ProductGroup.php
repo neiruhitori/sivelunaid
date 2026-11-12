@@ -16,12 +16,14 @@ class ProductGroup extends Model
         'name',
         'description',
         'banner_description',
+        'has_options',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'has_options' => 'boolean',
         'sort_order' => 'integer',
     ];
 
@@ -38,5 +40,10 @@ class ProductGroup extends Model
     public function fields(): HasMany
     {
         return $this->hasMany(ProductField::class);
+    }
+
+    public function options(): HasMany
+    {
+        return $this->hasMany(ProductGroupOption::class)->orderBy('sort_order')->orderBy('id');
     }
 }

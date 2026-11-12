@@ -16,6 +16,7 @@ class WelcomeProductController extends Controller
             'variants' => fn ($query) => $query->where('is_active', true)
                 ->orderBy('sort_order')->orderBy('id'),
             'fields' => fn ($query) => $query->orderBy('sort_order')->orderBy('id'),
+            'options' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')->orderBy('id'),
         ]);
 
         $aboutItems = collect(preg_split('/\r\n|\r|\n|<br\s*\/?\s*>/i', $productGroup->description ?? '', -1, PREG_SPLIT_NO_EMPTY))

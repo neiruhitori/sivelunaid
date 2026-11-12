@@ -60,17 +60,38 @@
             <div class="purchase-layout">
                 <section class="purchase-card" aria-labelledby="variant-heading">
                     <div class="step-heading"><span>1</span>
-                        <h2 id="variant-heading">Pilih paket {{ $productGroup->name }}</h2>
+                        <h2 id="variant-heading">{{ $productGroup->has_options ? 'Pilih subpilihan' : 'Pilih paket ' . $productGroup->name }}</h2>
                     </div>
                     <div class="nominal-content">
-                        <p class="nominal-note">Pilih paket dan harga sesuai keinginan Anda.</p>
+                        @if ($productGroup->has_options)
+                            <p class="nominal-note">Pilih jenis layanan yang Anda inginkan.</p>
+                            <div class="nominal-grid product-suboption-grid" role="group" aria-label="Subpilihan {{ $productGroup->name }}">
+                                @forelse ($productGroup->options as $option)
+                                    <button class="nominal-option product-suboption" type="button" data-order-option
+                                        data-option-id="{{ $option->id }}" data-option-name="{{ $option->name }}"
+                                        aria-pressed="false">
+                                        <span class="robux-icon" aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($option->name, 0, 1)) }}</span>
+                                        <span class="nominal-details"><strong>{{ $option->name }}</strong>
+                                            @if ($option->description)<small>{{ $option->description }}</small>@endif
+                                        </span>
+                                        <span class="option-select-indicator" aria-hidden="true">›</span>
+                                    </button>
+                                @empty
+                                    <p class="catalog-empty">Pilihan untuk produk ini sedang disiapkan.</p>
+                                @endforelse
+                            </div>
+                            <div class="step-heading product-fields-heading"><span>2</span><h2>Pilih paket</h2></div>
+                        @else
+                            <p class="nominal-note">Pilih paket dan harga sesuai keinginan Anda.</p>
+                        @endif
                         @if ($productGroup->variants->isNotEmpty())
                             <div class="nominal-grid" role="group" aria-label="Pilihan paket {{ $productGroup->name }}">
                                 @foreach ($productGroup->variants as $variant)
                                     @php($price = $variant->discount_price ?? $variant->price)
                                     <button class="nominal-option" type="button" data-order-variant
                                         data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
-                                        data-price="{{ $price }}" aria-pressed="false">
+                                        data-price="{{ $price }}" data-option-id="{{ $variant->product_group_option_id }}"
+                                        aria-pressed="false" @if ($productGroup->has_options) hidden @endif>
                                         <span class="robux-icon"
                                             aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($variant->name, 0, 1)) }}</span>
                                         <span class="nominal-details"><strong>{{ $variant->name }}</strong>
@@ -87,12 +108,15 @@
                                     </button>
                                 @endforeach
                             </div>
+                            @if ($productGroup->has_options)
+                                <p class="catalog-empty" data-option-empty hidden>Belum ada paket aktif untuk pilihan ini.</p>
+                            @endif
                         @else
                             <p class="catalog-empty">Belum ada variant aktif untuk pilihan ini.</p>
                         @endif
 
                         @if ($productGroup->fields->isNotEmpty())
-                            <div class="step-heading product-fields-heading"><span>2</span>
+                            <div class="step-heading product-fields-heading"><span>{{ $productGroup->has_options ? '3' : '2' }}</span>
                                 <h2>Data yang diperlukan</h2>
                             </div>
                             <div class="account-fields-row product-fields-row">
@@ -130,7 +154,7 @@
                         @endif
 
                         <fieldset class="payment-field product-payment-field">
-                            <legend>3. Pilih pembayaran</legend>
+                            <legend>{{ $productGroup->has_options ? '4' : '3' }}. Pilih pembayaran</legend>
                             <label><input type="radio" name="payment-method" value="QRIS" data-order-payment>
                                 QRIS</label>
                             <label><input type="radio" name="payment-method" value="Transfer Bank" data-order-payment>
@@ -157,6 +181,9 @@
                         <div class="order-details" data-order-details hidden>
                             <div class="order-detail-row"><span>Produk</span><strong>{{ $productGroup->product->name }}</strong></div>
                             <div class="order-detail-row"><span>Pilihan</span><strong>{{ $productGroup->name }}</strong></div>
+                            @if ($productGroup->has_options)
+                                <div class="order-detail-row"><span>Subpilihan</span><strong data-summary-option>—</strong></div>
+                            @endif
                             <div class="order-detail-row"><span>Paket</span><strong data-summary-variant>—</strong></div>
                             <div class="order-summary-fields" data-summary-fields></div>
                             <div class="order-detail-row"><span>Pembayaran</span><strong data-summary-payment>—</strong></div>

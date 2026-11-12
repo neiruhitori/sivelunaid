@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductGroup;
+use App\Models\ProductGroupOption;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
@@ -37,6 +38,7 @@ class ProductGroupsController extends Controller
             ->editColumn('created_at', fn (ProductGroup $group) => $group->created_at?->format('d/m/Y H:i'))
             ->addColumn('actions', fn (ProductGroup $group) => '
                 <div class="btn-group btn-group-sm" role="group">
+                    ' . ($group->has_options ? '<button type="button" data-action="options" data-id="' . $group->id . '" data-options-url="' . e(route('admin.product-groups.options.index', $group)) . '" class="btn btn-outline-info"><i class="fas fa-folder-open"></i> Pilihan</button>' : '') . '
                     <button type="button" data-action="edit" data-id="' . $group->id . '" class="btn btn-outline-primary"><i class="fas fa-edit"></i> Edit</button>
                     <button type="button" data-action="delete" data-id="' . $group->id . '" class="btn btn-outline-danger"><i class="fas fa-trash"></i> Hapus</button>
                 </div>')
@@ -55,11 +57,12 @@ class ProductGroupsController extends Controller
         $names = $validated['names'];
         unset($validated['names'], $validated['sort_order_custom']);
         $customSortOrder = $request->boolean('sort_order_custom');
+        $hasOptions = (bool) $validated['has_options'];
 
-        DB::transaction(function () use ($validated, $names, $customSortOrder) {
+        DB::transaction(function () use ($validated, $names, $customSortOrder, $hasOptions) {
             $groups = $this->orderedGroups((int) $validated['product_id']);
             $position = min($customSortOrder ? (int) $validated['sort_order'] : $groups->count(), $groups->count());
-            $batch = collect($names)->map(fn ($name) => new ProductGroup(array_merge($validated, ['name' => $name])));
+            $batch = collect($names)->map(fn ($name) => new ProductGroup(array_merge($validated, ['name' => $name, 'has_options' => $hasOptions])));
             $groups->splice($position, 0, $batch->all());
             $groups->each(function (ProductGroup $group, int $index) {
                 $group->sort_order = $index;
@@ -86,6 +89,12 @@ class ProductGroupsController extends Controller
         $names = $validated['names'];
         unset($validated['names'], $validated['sort_order_custom']);
         $customSortOrder = $request->boolean('sort_order_custom');
+        if (! $validated['has_options'] && ProductGroupOption::query()->where('product_group_id', $productGroup->id)->whereHas('variants')->exists()) {
+            return response()->json([
+                'message' => 'Fitur subpilihan tidak dapat dinonaktifkan karena masih ada Product Variant yang menggunakannya.',
+                'errors' => ['has_options' => ['Pindahkan atau hapus variant di bawah subpilihan terlebih dahulu.']],
+            ], 422);
+        }
 
         DB::transaction(function () use ($productGroup, $validated, $names, $customSortOrder) {
             $oldProductId = (int) $productGroup->product_id;
@@ -142,6 +151,7 @@ class ProductGroupsController extends Controller
             'description_items' => ['nullable', 'array', 'max:100'],
             'description_items.*' => ['nullable', 'string', 'max:2000'],
             'banner_description' => ['nullable', 'string'],
+            'has_options' => ['required', 'boolean'],
             'is_active' => ['required', 'boolean'],
             'sort_order' => ['required', 'integer', 'min:0'],
             'sort_order_custom' => ['nullable', 'boolean'],

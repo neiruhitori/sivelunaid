@@ -12,6 +12,7 @@ class ProductVariant extends Model
 
     protected $fillable = [
         'product_group_id',
+        'product_group_option_id',
         'name',
         'description',
         'price',
@@ -30,5 +31,10 @@ class ProductVariant extends Model
     public function group(): BelongsTo
     {
         return $this->belongsTo(ProductGroup::class, 'product_group_id');
+    }
+
+    public function groupOption(): BelongsTo
+    {
+        return $this->belongsTo(ProductGroupOption::class, 'product_group_option_id');
     }
 }

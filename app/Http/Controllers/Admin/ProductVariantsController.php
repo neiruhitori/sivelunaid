@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProductGroup;
+use App\Models\ProductGroupOption;
 use App\Models\ProductVariant;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,7 @@ class ProductVariantsController extends Controller
     public function index()
     {
         return view('admin.product-variants.index', [
-            'groups' => ProductGroup::query()->with('product:id,name')->orderBy('name')->get(),
+            'groups' => ProductGroup::query()->with(['product:id,name', 'options:id,product_group_id,name'])->orderBy('name')->get(),
         ]);
     }
 
@@ -22,7 +23,8 @@ class ProductVariantsController extends Controller
     {
         $query = ProductVariant::query()
             ->join('product_groups', 'product_groups.id', '=', 'product_variants.product_group_id')
-            ->select(['product_variants.*', 'product_groups.name as group_name']);
+            ->leftJoin('product_group_options', 'product_group_options.id', '=', 'product_variants.product_group_option_id')
+            ->select(['product_variants.*', 'product_groups.name as group_name', 'product_group_options.name as option_name']);
 
         return DataTables::eloquent($query)
             ->addIndexColumn()
@@ -63,9 +65,10 @@ class ProductVariantsController extends Controller
         $items = array_values($validated['variants']);
         unset($validated['variants'], $validated['sort_order_custom']);
         $customSortOrder = $request->boolean('sort_order_custom');
+        $optionId = ! empty($validated['product_group_option_id']) ? (int) $validated['product_group_option_id'] : null;
 
-        DB::transaction(function () use ($validated, $items, $customSortOrder) {
-            $variants = $this->orderedVariants((int) $validated['product_group_id']);
+        DB::transaction(function () use ($validated, $items, $customSortOrder, $optionId) {
+            $variants = $this->orderedVariants((int) $validated['product_group_id'], $optionId);
             $position = min($customSortOrder ? (int) $validated['sort_order'] : $variants->count(), $variants->count());
             $batch = collect($items)->map(fn ($item) => new ProductVariant(array_merge($validated, $item)));
             $variants->splice($position, 0, $batch->all());
@@ -94,17 +97,20 @@ class ProductVariantsController extends Controller
         $items = array_values($validated['variants']);
         unset($validated['variants'], $validated['sort_order_custom']);
         $customSortOrder = $request->boolean('sort_order_custom');
+        $newOptionId = ! empty($validated['product_group_option_id']) ? (int) $validated['product_group_option_id'] : null;
 
-        DB::transaction(function () use ($productVariant, $validated, $items, $customSortOrder) {
+        DB::transaction(function () use ($productVariant, $validated, $items, $customSortOrder, $newOptionId) {
             $oldGroupId = (int) $productVariant->product_group_id;
             $newGroupId = (int) $validated['product_group_id'];
-            $oldVariants = $this->orderedVariants($oldGroupId);
+            $oldOptionId = $productVariant->product_group_option_id ? (int) $productVariant->product_group_option_id : null;
+            $oldVariants = $this->orderedVariants($oldGroupId, $oldOptionId);
             $oldIndex = $oldVariants->search(fn ($variant) => $variant->id === $productVariant->id);
+            $scopeChanged = $newGroupId !== $oldGroupId || $newOptionId !== $oldOptionId;
 
-            if ($newGroupId !== $oldGroupId) {
+            if ($scopeChanged) {
                 $oldVariants->reject(fn ($variant) => $variant->id === $productVariant->id)->values()
                     ->each(fn ($variant, $index) => $variant->update(['sort_order' => $index]));
-                $siblings = $this->orderedVariants($newGroupId);
+                $siblings = $this->orderedVariants($newGroupId, $newOptionId);
                 $position = min($customSortOrder ? (int) $validated['sort_order'] : $siblings->count(), $siblings->count());
             } else {
                 $siblings = $oldVariants->reject(fn ($variant) => $variant->id === $productVariant->id)->values();
@@ -134,8 +140,9 @@ class ProductVariantsController extends Controller
     {
         DB::transaction(function () use ($productVariant) {
             $groupId = (int) $productVariant->product_group_id;
+            $optionId = $productVariant->product_group_option_id ? (int) $productVariant->product_group_option_id : null;
             $productVariant->delete();
-            $this->orderedVariants($groupId)->each(fn ($variant, $index) => $variant->update(['sort_order' => $index]));
+            $this->orderedVariants($groupId, $optionId)->each(fn ($variant, $index) => $variant->update(['sort_order' => $index]));
         });
 
         return response()->json(['success' => true, 'message' => 'Product Variant berhasil dihapus.']);
@@ -143,8 +150,9 @@ class ProductVariantsController extends Controller
 
     private function validateVariants(Request $request): array
     {
-        return $request->validate([
+        $validated = $request->validate([
             'product_group_id' => ['required', 'integer', 'exists:product_groups,id'],
+            'product_group_option_id' => ['nullable', 'integer', 'exists:product_group_options,id'],
             'variants' => ['required', 'array', 'min:1', 'max:50'],
             'variants.*.name' => ['required', 'string', 'max:150'],
             'variants.*.price' => ['required', 'numeric', 'min:0'],
@@ -154,11 +162,31 @@ class ProductVariantsController extends Controller
             'sort_order' => ['required', 'integer', 'min:0'],
             'sort_order_custom' => ['nullable', 'boolean'],
         ]);
+
+        $group = ProductGroup::query()->findOrFail($validated['product_group_id']);
+        $optionId = $validated['product_group_option_id'] ?? null;
+        if ($group->has_options && ! $optionId) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'product_group_option_id' => 'Pilih subpilihan untuk Product Group ini.',
+            ]);
+        }
+        if ($optionId) {
+            $option = ProductGroupOption::query()->findOrFail($optionId);
+            if (! $group->has_options || (int) $option->product_group_id !== (int) $group->id) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'product_group_option_id' => 'Subpilihan tidak sesuai dengan Product Group.',
+                ]);
+            }
+        }
+
+        return $validated;
     }
 
-    private function orderedVariants(int $groupId)
+    private function orderedVariants(int $groupId, ?int $optionId = null)
     {
         return ProductVariant::query()->where('product_group_id', $groupId)
+            ->when($optionId === null, fn ($query) => $query->whereNull('product_group_option_id'),
+                fn ($query) => $query->where('product_group_option_id', $optionId))
             ->orderBy('sort_order')->orderBy('id')->lockForUpdate()->get();
     }
 }

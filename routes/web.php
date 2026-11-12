@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ProductsController;
 use App\Http\Controllers\Admin\ProductGroupsController;
 use App\Http\Controllers\Admin\ProductVariantsController;
 use App\Http\Controllers\Admin\ProductFieldsController;
+use App\Http\Controllers\Admin\ProductGroupOptionsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -116,6 +117,14 @@ Route::middleware(['auth', 'verified'])
         // Product Groups
         Route::get('product-groups/data', [ProductGroupsController::class, 'data'])
             ->name('product-groups.data');
+        Route::get('product-groups/{productGroup}/options', [ProductGroupOptionsController::class, 'index'])
+            ->whereNumber('productGroup')->name('product-groups.options.index');
+        Route::post('product-groups/{productGroup}/options', [ProductGroupOptionsController::class, 'store'])
+            ->whereNumber('productGroup')->name('product-groups.options.store');
+        Route::put('product-groups/{productGroup}/options/{option}', [ProductGroupOptionsController::class, 'update'])
+            ->whereNumber('productGroup')->whereNumber('option')->name('product-groups.options.update');
+        Route::delete('product-groups/{productGroup}/options/{option}', [ProductGroupOptionsController::class, 'destroy'])
+            ->whereNumber('productGroup')->whereNumber('option')->name('product-groups.options.destroy');
         Route::resource('product-groups', ProductGroupsController::class);
 
         // Product Variants
