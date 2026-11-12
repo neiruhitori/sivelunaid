@@ -313,7 +313,7 @@
                 <li>Update terbaru seputar Veluna Store.</li>
             </ul>
             <a class="button button-dark update-group-join"
-                href="https://chat.whatsapp.com/EIoorF55lkwD4i8cpP6UGC?s=cl&amp;p=a&amp;iam=2" target="_blank"
+                href="https://chat.whatsapp.com/EIoorF55lkwD4i8cpP6UGC" target="_blank"
                 rel="noopener noreferrer">
                 Gabung Grup WhatsApp <span aria-hidden="true">→</span>
             </a>
