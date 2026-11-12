@@ -139,6 +139,7 @@
         <script src="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.js') }}"></script>
         <script>
             $(function () {
+                const expandedGroups = new Set();
                 const table = $('#products-table').DataTable({
                     processing: true, serverSide: true, autoWidth: false,
                     ajax: "{{ route('admin.products.data') }}",
@@ -162,11 +163,19 @@
                         let previousCategory = null;
                         rows.every(function () {
                             const product = this.data();
-                            if (String(product.category_id) === String(previousCategory)) return;
-                            const heading = $('<td/>', { colspan: 10 }).append(
-                                $('<strong/>').text('Kategori #' + product.category_id + ' · ' + product.category_name)
-                            );
-                            $(this.node()).before($('<tr/>', { class: 'relation-group-row bg-light' }).append(heading));
+                            const groupKey = String(product.category_id);
+                            const expanded = expandedGroups.has(groupKey);
+                            const row = $(this.node()).attr('data-relation-group', groupKey).toggle(expanded);
+                            if (groupKey === String(previousCategory)) return;
+
+                            const toggle = $('<button/>', {
+                                type: 'button',
+                                class: 'btn btn-link text-dark font-weight-bold p-0 relation-folder-toggle',
+                                'aria-expanded': String(expanded),
+                            }).attr('data-group-key', groupKey);
+                            toggle.append($('<i/>', { class: 'fas ' + (expanded ? 'fa-folder-open' : 'fa-folder') + ' mr-2' }));
+                            toggle.append(document.createTextNode('Kategori #' + product.category_id + ' · ' + product.category_name));
+                            row.before($('<tr/>', { class: 'relation-group-row' }).append($('<td/>', { colspan: 10 }).append(toggle)));
                             previousCategory = product.category_id;
                         });
                     },
@@ -177,6 +186,16 @@
                         emptyTable: 'Belum ada produk. Silakan tambahkan produk pertama.',
                         paginate: { first: 'Pertama', last: 'Terakhir', next: 'Berikutnya', previous: 'Sebelumnya' }
                     }
+                });
+                $('#products-table tbody').on('click', '.relation-folder-toggle', function () {
+                    const key = String($(this).attr('data-group-key'));
+                    const expanded = !expandedGroups.has(key);
+                    if (expanded) expandedGroups.add(key); else expandedGroups.delete(key);
+                    $(this).attr('aria-expanded', String(expanded)).find('i')
+                        .toggleClass('fa-folder', !expanded).toggleClass('fa-folder-open', expanded);
+                    $('#products-table tbody tr[data-relation-group]').each(function () {
+                        if ($(this).attr('data-relation-group') === key) $(this).toggle(expanded);
+                    });
                 });
 
                 const modal = $('#product-modal');
