@@ -242,8 +242,8 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('Welcome/site-loader.js') }}"></script>
-    <script src="{{ asset('Welcome/music-player.js') }}"></script>
-    <script src="{{ asset('Welcome/order-guide.js') }}"></script>
-    <script src="{{ asset('Welcome/product-order.js') }}"></script>
+    <script src="{{ asset('Welcome/js/site-loader.js') }}"></script>
+    <script src="{{ asset('Welcome/js/music-player.js') }}"></script>
+    <script src="{{ asset('Welcome/js/order-guide.js') }}"></script>
+    <script src="{{ asset('Welcome/js/product-order.js') }}"></script>
 @endsection

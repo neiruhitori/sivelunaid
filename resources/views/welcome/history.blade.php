@@ -26,7 +26,7 @@
             <p>Riwayat pesanan yang sudah selesai. Informasi pribadi pembeli tidak ditampilkan.</p>
         </header>
 
-        <form class="order-history-search" method="GET" action="{{ route('welcome.orders.history') }}" role="search" data-order-history-search>
+        <form class="order-history-search" method="GET" action="{{ route('welcome.orders.history') }}" role="search" data-order-history-search data-endpoint="{{ route('welcome.orders.history') }}">
             <label class="sr-only" for="order-history-query">Cari pesanan</label>
             <input id="order-history-query" type="search" name="q" value="{{ $search }}" placeholder="Cari produk atau nomor pesanan...">
             <button class="button button-dark" type="submit">Cari</button>
@@ -42,79 +42,8 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('Welcome/site-loader.js') }}"></script>
-    <script src="{{ asset('Welcome/music-player.js') }}"></script>
-    <script src="{{ asset('Welcome/order-guide.js') }}"></script>
-    <script>
-        (() => {
-            const form = document.querySelector('[data-order-history-search]');
-            const input = form?.querySelector('input[name="q"]');
-            const results = document.querySelector('[data-order-history-results]');
-            if (!form || !input || !results) return;
-
-            let timer;
-            let controller;
-            let requestId = 0;
-
-            const loadResults = async (url, updateAddress = true) => {
-                controller?.abort();
-                controller = new AbortController();
-                const currentRequest = ++requestId;
-                results.setAttribute('aria-busy', 'true');
-                results.classList.add('is-loading');
-
-                try {
-                    const response = await fetch(url, {
-                        headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
-                        signal: controller.signal,
-                    });
-                    if (!response.ok) throw new Error('Pencarian gagal dimuat.');
-                    const data = await response.json();
-                    if (currentRequest !== requestId) return;
-                    results.innerHTML = data.html;
-                    if (updateAddress) window.history.replaceState({}, '', url);
-                } catch (error) {
-                    if (error.name !== 'AbortError') form.submit();
-                } finally {
-                    if (currentRequest === requestId) {
-                        results.setAttribute('aria-busy', 'false');
-                        results.classList.remove('is-loading');
-                    }
-                }
-            };
-
-            const makeUrl = () => {
-                const url = new URL(form.action, window.location.href);
-                const query = input.value.trim();
-                if (query) url.searchParams.set('q', query);
-                else url.searchParams.delete('q');
-                url.searchParams.delete('page');
-                return url.toString();
-            };
-
-            input.addEventListener('input', () => {
-                window.clearTimeout(timer);
-                timer = window.setTimeout(() => loadResults(makeUrl()), 300);
-            });
-
-            form.addEventListener('submit', (event) => {
-                event.preventDefault();
-                window.clearTimeout(timer);
-                loadResults(makeUrl());
-            });
-
-            results.addEventListener('click', (event) => {
-                const link = event.target.closest('.pagination a');
-                if (!link) return;
-                event.preventDefault();
-                loadResults(link.href);
-            });
-
-            window.addEventListener('popstate', () => {
-                const url = new URL(window.location.href);
-                input.value = url.searchParams.get('q') || '';
-                loadResults(url.toString(), false);
-            });
-        })();
-    </script>
+    <script src="{{ asset('Welcome/js/site-loader.js') }}"></script>
+    <script src="{{ asset('Welcome/js/music-player.js') }}"></script>
+    <script src="{{ asset('Welcome/js/order-guide.js') }}"></script>
+    <script src="{{ asset('Welcome/js/order-history.js') }}"></script>
 @endsection
