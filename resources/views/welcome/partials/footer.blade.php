@@ -7,7 +7,7 @@
       </div>
       <div class="footer-column">
         <h2>Bantuan</h2>
-        <a href="https://wa.me/6738386518" target="_blank" rel="noopener noreferrer">Hubungi kami</a><a href="#cara-order" data-order-guide>Cara Order</a>
+        <a href="https://wa.me/6738386518" target="_blank" rel="noopener noreferrer">Hubungi kami</a><a href="#cara-order" data-order-guide>Cara Order</a><a href="{{ route('welcome.orders.history') }}">Riwayat Pesanan</a>
       </div>
       <div class="footer-column">
         <h2>Informasi</h2>

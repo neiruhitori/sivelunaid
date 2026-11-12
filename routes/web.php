@@ -5,7 +5,9 @@ use Illuminate\Support\Facades\Route;
 use App\Models\Category;
 use App\Models\Product;
 use App\Http\Controllers\WelcomeProductController;
+use App\Http\Controllers\WelcomeOrderController;
 use App\Http\Controllers\Admin\StorefrontController;
+use App\Http\Controllers\Admin\OrdersController;
 
 // Controllers
 use App\Http\Controllers\ProfileController;
@@ -24,6 +26,8 @@ use App\Http\Controllers\Admin\ProductGroupOptionsController;
 */
 
 Route::middleware('storefront.open')->group(function () {
+Route::get('/riwayat-pesanan', [WelcomeOrderController::class, 'history'])->name('welcome.orders.history');
+Route::post('/pesanan', [WelcomeOrderController::class, 'store'])->name('welcome.orders.store');
 Route::get('/', function () {
     $categories = Category::query()
         ->where('is_active', true)
@@ -102,6 +106,13 @@ Route::middleware(['auth', 'verified'])
 
         Route::post('/storefront/status', [StorefrontController::class, 'update'])
             ->name('storefront.status');
+
+        // Orders
+        Route::get('orders/data', [OrdersController::class, 'data'])->name('orders.data');
+        Route::get('orders/pending', [OrdersController::class, 'pending'])->name('orders.pending');
+        Route::get('orders/{order}', [OrdersController::class, 'show'])->whereNumber('order')->name('orders.show');
+        Route::patch('orders/{order}/status', [OrdersController::class, 'updateStatus'])->whereNumber('order')->name('orders.status');
+        Route::get('orders', [OrdersController::class, 'index'])->name('orders.index');
 
         // Categories
         Route::get('categories/data', [CategoriesController::class, 'data'])

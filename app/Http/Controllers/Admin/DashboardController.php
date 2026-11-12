@@ -8,6 +8,7 @@ use App\Models\Dashboard;
 use App\Models\Product;
 use App\Models\ProductGroup;
 use App\Models\ProductVariant;
+use App\Models\Order;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
 
@@ -23,6 +24,8 @@ class DashboardController extends Controller
             'productCount' => Product::count(),
             'productGroupCount' => ProductGroup::count(),
             'productVariantCount' => ProductVariant::count(),
+            'orderCount' => Order::count(),
+            'pendingOrderCount' => Order::where('status', 'pending_payment')->count(),
             'storefrontOpen' => SiteSetting::storefrontIsOpen(),
         ]);
     }

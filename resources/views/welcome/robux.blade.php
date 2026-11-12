@@ -19,7 +19,8 @@
 
 @section('content')
     <main class="roblox-page product-order-page" data-product-order data-product-name="{{ $productGroup->product->name }}"
-        data-group-name="{{ $productGroup->name }}">
+        data-group-name="{{ $productGroup->name }}" data-order-url="{{ route('welcome.orders.store') }}"
+        data-csrf-token="{{ csrf_token() }}">
         <div class="page-width">
             <nav class="breadcrumbs" aria-label="Breadcrumb">
                 <a href="{{ route('welcome.index') }}">Beranda</a><span aria-hidden="true">/</span>

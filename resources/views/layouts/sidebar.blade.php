@@ -13,6 +13,7 @@
         @php
             $adminMenu = [
                 ['label' => 'Dashboard', 'route' => 'dashboard', 'active' => 'dashboard', 'icon' => 'fas fa-tachometer-alt'],
+                ['label' => 'Pesanan', 'route' => 'admin.orders.index', 'active' => 'admin.orders.*', 'icon' => 'fas fa-receipt'],
                 ['label' => 'Category', 'route' => 'admin.categories.index', 'active' => 'admin.categories.*', 'icon' => 'fas fa-th-large'],
                 ['label' => 'Product', 'route' => 'admin.products.index', 'active' => 'admin.products.*', 'icon' => 'fas fa-box'],
                 ['label' => 'Product Group', 'route' => 'admin.product-groups.index', 'active' => 'admin.product-groups.*', 'icon' => 'fas fa-layer-group'],

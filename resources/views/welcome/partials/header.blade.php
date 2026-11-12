@@ -18,8 +18,9 @@
     </div>
     <nav class="main-nav page-width" aria-label="Navigasi utama">
       <a @if($isHome) class="active" @endif href="{{ route('welcome.index') }}">Beranda</a>
-      <a @if(!$isHome) class="active" @endif href="{{ route('welcome.index') }}#produk">Produk</a>
+      <a @if(request()->routeIs('welcome.product-group')) class="active" @endif href="{{ route('welcome.index') }}#produk">Produk</a>
       <a href="{{ route('welcome.index') }}#tentang">Tentang Kami</a>
+      <a @if(request()->routeIs('welcome.orders.history')) class="active" @endif href="{{ route('welcome.orders.history') }}">Riwayat Pesanan</a>
       <a href="#cara-order" data-order-guide>Cara Order</a>
     </nav>
   </header>
