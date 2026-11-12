@@ -161,6 +161,21 @@
                                 Transfer Bank</label>
                             <label><input type="radio" name="payment-method" value="E-Wallet" data-order-payment>
                                 E-Wallet</label>
+                            <p class="payment-method-note" data-qris-note hidden>Gambar QRIS akan dikirimkan oleh admin melalui WhatsApp setelah pesanan dikonfirmasi.</p>
+                            <div class="payment-detail" data-payment-panel="Transfer Bank" hidden>
+                                <h3>Pilih bank</h3>
+                                <label><input type="radio" name="payment-provider" value="SeaBank" data-order-provider>
+                                    SeaBank</label>
+                            </div>
+                            <div class="payment-detail" data-payment-panel="E-Wallet" hidden>
+                                <h3>Pilih e-wallet</h3>
+                                <label><input type="radio" name="payment-provider" value="DANA" data-order-provider>
+                                    DANA</label>
+                                <label><input type="radio" name="payment-provider" value="GoPay" data-order-provider>
+                                    GoPay</label>
+                                <label><input type="radio" name="payment-provider" value="ShopeePay" data-order-provider>
+                                    ShopeePay</label>
+                            </div>
                         </fieldset>
                     </div>
                 </section>
