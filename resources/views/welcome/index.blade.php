@@ -12,7 +12,7 @@
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap"
             rel="stylesheet">
-        <link rel="stylesheet" href="{{ asset('Welcome/style.css') }}">
+        @vite('resources/css/welcome/style.css')
     </head>
 @endsection
 
@@ -327,8 +327,10 @@
 @endsection
 
 @section('scripts')
-    <script src="{{ asset('Welcome/js/site-loader.js') }}"></script>
-    <script src="{{ asset('Welcome/js/music-player.js') }}"></script>
-    <script src="{{ asset('Welcome/js/order-guide.js') }}"></script>
-    <script src="{{ asset('Welcome/js/script.js') }}"></script>
+    @vite([
+        'resources/js/welcome/site-loader.js',
+        'resources/js/welcome/music-player.js',
+        'resources/js/welcome/order-guide.js',
+        'resources/js/welcome/script.js',
+    ])
 @endsection
