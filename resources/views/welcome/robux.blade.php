@@ -18,7 +18,7 @@
 
 @section('content')
     <main class="roblox-page product-order-page" data-product-order data-product-name="{{ $productGroup->product->name }}"
-        data-group-name="{{ $productGroup->name }}" data-order-url="{{ route('welcome.orders.store') }}"
+        data-group-name="{{ $productGroup->name }}" data-product-group-id="{{ $productGroup->id }}" data-order-url="{{ route('welcome.orders.store') }}"
         data-csrf-token="{{ csrf_token() }}">
         <div class="page-width">
             <nav class="breadcrumbs" aria-label="Breadcrumb">
@@ -85,27 +85,34 @@
                             <p class="nominal-note">Pilih paket dan harga sesuai keinginan Anda.</p>
                         @endif
                         @if ($productGroup->variants->isNotEmpty())
-                            <div class="nominal-grid" role="group" aria-label="Pilihan paket {{ $productGroup->name }}">
+                            <div class="nominal-grid product-variant-grid" role="group" aria-label="Pilihan paket {{ $productGroup->name }}">
                                 @foreach ($productGroup->variants as $variant)
                                     @php($price = $variant->discount_price ?? $variant->price)
-                                    <button class="nominal-option" type="button" data-order-variant
-                                        data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
-                                        data-price="{{ $price }}" data-option-id="{{ $variant->product_group_option_id }}"
-                                        aria-pressed="false" @if ($productGroup->has_options) hidden @endif>
-                                        <span class="robux-icon"
-                                            aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($variant->name, 0, 1)) }}</span>
-                                        <span class="nominal-details"><strong>{{ $variant->name }}</strong>
-                                            @if ($variant->description)
-                                                <small>{{ $variant->description }}</small>
-                                            @endif
-                                        </span>
-                                        <b class="nominal-price">Rp{{ number_format((float) $price, 0, ',', '.') }}
-                                            @if ($variant->discount_price !== null)
-                                                <small
-                                                    class="original-price">Rp{{ number_format((float) $variant->price, 0, ',', '.') }}</small>
-                                            @endif
-                                        </b>
-                                    </button>
+                                    <div class="variant-option-card" @if ($productGroup->has_options) hidden @endif>
+                                        <button class="nominal-option" type="button" data-order-variant
+                                            data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
+                                            data-price="{{ $price }}" data-option-id="{{ $variant->product_group_option_id }}"
+                                            aria-pressed="false">
+                                            <span class="robux-icon"
+                                                aria-hidden="true">{{ \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($variant->name, 0, 1)) }}</span>
+                                            <span class="nominal-details"><strong>{{ $variant->name }}</strong>
+                                                @if ($variant->description)
+                                                    <small>{{ $variant->description }}</small>
+                                                @endif
+                                            </span>
+                                            <b class="nominal-price">Rp{{ number_format((float) $price, 0, ',', '.') }}
+                                                @if ($variant->discount_price !== null)
+                                                    <small class="original-price">Rp{{ number_format((float) $variant->price, 0, ',', '.') }}</small>
+                                                @endif
+                                            </b>
+                                        </button>
+                                        <button class="variant-add-button" type="button" data-cart-add-variant
+                                            data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
+                                            aria-label="Tambah {{ $variant->name }} ke keranjang">
+                                            <img class="variant-add-icon" src="{{ asset('Welcome/image/trolley.png') }}" alt="" aria-hidden="true">
+                                            <span class="variant-add-count" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
                                 @endforeach
                             </div>
                             @if ($productGroup->has_options)
@@ -199,10 +206,15 @@
                             @if ($productGroup->has_options)
                                 <div class="order-detail-row"><span>Subpilihan</span><strong data-summary-option>—</strong></div>
                             @endif
-                            <div class="order-detail-row"><span>Paket</span><strong data-summary-variant>—</strong></div>
+                            <div class="order-selected-package" data-summary-selected hidden>
+                                <span>Paket dipilih</span>
+                                <strong data-summary-selected-name></strong>
+                                <small data-summary-selected-price></small>
+                            </div>
+                            <div class="order-cart-items" data-summary-items></div>
                             <div class="order-summary-fields" data-summary-fields></div>
                             <div class="order-detail-row"><span>Pembayaran</span><strong data-summary-payment>—</strong></div>
-                            <div class="order-detail-row order-total"><span>Total</span><strong data-summary-price>—</strong></div>
+                            <div class="order-detail-row order-total"><span data-summary-total-label>Total</span><strong data-summary-price>—</strong></div>
                         </div>
                         <button class="checkout-button" type="button" data-order-checkout disabled>Buat pesanan via
                             WhatsApp</button>

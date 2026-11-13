@@ -138,7 +138,10 @@
                         const rows = [
                             ['Tanggal', new Date(order.created_at).toLocaleString('id-ID')],
                             ['Produk', order.product_name], ['Pilihan', order.group_name],
-                            ['Subpilihan', order.option_name || '-'], ['Paket', order.variant_name],
+                            ['Subpilihan', order.option_name || '-'],
+                            ['Item pesanan', (order.items || []).length
+                                ? order.items.map((item) => `${item.option_name ? `${item.option_name} - ` : ''}${item.name} × ${item.quantity} (${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(item.subtotal))})`).join(' · ')
+                                : order.variant_name],
                             ['Total', new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(order.total))],
                             ['Pembayaran', order.payment_method], ['Status', labelsForStatus(order.status)],
                         ];

@@ -300,6 +300,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .order-history-customer-fields b { color: #405d7a; font-weight: 700; overflow-wrap: anywhere; }
 [data-order-history-results] { transition: opacity .15s ease; }
 [data-order-history-results].is-loading { opacity: .5; pointer-events: none; }
+.order-history-items { display: grid; gap: 3px; margin: 6px 0 0; padding-left: 17px; color: #78889a; font-size: 10px; line-height: 1.5; }
 @media (max-width: 575px) { .order-history-card { padding: 15px; } .order-history-card-content { align-items: flex-start; } .order-history-card-content > strong { font-size: 12px; } }
 
 .roblox-method-dialog { position: relative; isolation: isolate; width: min(520px, calc(100% - 32px)); max-width: 520px; max-height: calc(100% - 32px); padding: 0; overflow: auto; border: 1px solid #dce8f3; border-radius: 16px; background: linear-gradient(135deg, #f8fbff, #fff8fb); color: var(--ink); box-shadow: 0 24px 80px rgb(34 55 78 / 22%); }

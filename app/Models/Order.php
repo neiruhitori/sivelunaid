@@ -24,6 +24,7 @@ class Order extends Model
         'group_name',
         'option_name',
         'variant_name',
+        'items',
         'customer_data',
         'total',
         'payment_method',
@@ -33,6 +34,7 @@ class Order extends Model
 
     protected $casts = [
         'total' => 'decimal:2',
+        'items' => 'array',
         'completed_at' => 'datetime',
     ];
 

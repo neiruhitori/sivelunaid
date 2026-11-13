@@ -7,16 +7,24 @@ const providerOptions = Array.from(document.querySelectorAll("[data-order-provid
 const paymentPanels = Array.from(document.querySelectorAll("[data-payment-panel]"));
 const orderEmpty = document.querySelector("[data-order-empty]");
 const orderDetails = document.querySelector("[data-order-details]");
-const selectedVariant = document.querySelector("[data-summary-variant]");
 const selectedPayment = document.querySelector("[data-summary-payment]");
 const selectedPrice = document.querySelector("[data-summary-price]");
+const selectedTotalLabel = document.querySelector("[data-summary-total-label]");
+const selectedPackage = document.querySelector("[data-summary-selected]");
+const selectedPackageName = document.querySelector("[data-summary-selected-name]");
+const selectedPackagePrice = document.querySelector("[data-summary-selected-price]");
+const summaryItems = document.querySelector("[data-summary-items]");
 const summaryFields = document.querySelector("[data-summary-fields]");
 const checkout = document.querySelector("[data-order-checkout]");
 const message = document.querySelector("[data-order-message]");
+const cartAddButtons = Array.from(document.querySelectorAll("[data-cart-add-variant]"));
+const variantGrid = document.querySelector(".product-variant-grid");
 const confirmDialog = document.querySelector("[data-order-confirm]");
 const confirmSummary = document.querySelector("[data-order-confirm-summary]");
+const cart = new Map();
 let activeVariant = null;
 let activeProductOption = null;
+let hasSelectedVariant = false;
 
 const formatRupiah = (amount) => new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -41,8 +49,19 @@ const getPayment = () => {
   return provider ? `${method.value} - ${provider.value}` : "";
 };
 
+const cartTotal = () => Array.from(cart.values()).reduce((total, item) => total + item.price * item.quantity, 0);
+
+const cartItemFromVariant = (variant) => ({
+  id: Number(variant.dataset.variantId),
+  name: variant.dataset.variantName,
+  price: Number(variant.dataset.price),
+  optionId: variant.dataset.optionId || null,
+  optionName: activeProductOption?.dataset.optionName || "",
+  quantity: 1,
+});
+
 const isComplete = () => Boolean(
-  activeVariant && getPayment() && (!productOptions.length || activeProductOption)
+  cart.size > 0 && getPayment()
     && getFieldValues().every((field) => !field.required || field.value)
     && orderFields.every((field) => field.type !== "email" || field.validity.valid),
 );
@@ -54,20 +73,84 @@ const updatePaymentPanels = () => {
   if (qrisNote) qrisNote.hidden = method !== "QRIS";
 };
 
+const makeCartRow = (item) => {
+  const row = document.createElement("div");
+  row.className = "order-cart-item";
+  const description = document.createElement("div");
+  description.className = "order-cart-item-description";
+  const name = document.createElement("strong");
+  name.textContent = item.optionName ? `${item.optionName} - ${item.name}` : item.name;
+  const price = document.createElement("small");
+  price.textContent = `${formatRupiah(item.price)} / item`;
+  description.append(name, price);
+
+  const controls = document.createElement("div");
+  controls.className = "order-cart-item-controls";
+  const makeControl = (label, action, text) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "cart-quantity-button";
+    button.setAttribute("aria-label", label);
+    button.dataset.cartAction = action;
+    button.dataset.cartId = String(item.id);
+    button.textContent = text;
+    return button;
+  };
+  controls.append(makeControl(`Kurangi ${item.name}`, "decrease", "-"));
+  const quantity = document.createElement("span");
+  quantity.className = "cart-quantity";
+  quantity.textContent = String(item.quantity);
+  controls.append(quantity, makeControl(`Tambah ${item.name}`, "increase", "+"));
+
+  const subtotal = document.createElement("strong");
+  subtotal.className = "order-cart-item-subtotal";
+  subtotal.textContent = formatRupiah(item.price * item.quantity);
+  const remove = makeControl(`Hapus ${item.name} dari keranjang`, "remove", "x");
+  remove.classList.add("cart-remove-button");
+  controls.append(subtotal, remove);
+  row.append(description, controls);
+  return row;
+};
+
 const updateSummary = () => {
-  const hasSelection = Boolean(activeVariant);
-  orderEmpty.hidden = hasSelection;
-  orderDetails.hidden = !hasSelection;
+  const hasItems = cart.size > 0;
+  const pendingSelection = activeVariant && !cart.has(Number(activeVariant.dataset.variantId));
+  const hasSummary = hasItems || Boolean(activeVariant);
+  orderEmpty.hidden = hasSummary;
+  orderDetails.hidden = !hasSummary;
   checkout.disabled = !isComplete();
   message.textContent = "";
+  if (variantGrid) variantGrid.classList.toggle("has-selection", hasSelectedVariant);
+  cartAddButtons.forEach((button) => {
+    const item = cart.get(Number(button.dataset.variantId));
+    const count = button.querySelector(".variant-add-count");
+    if (count) count.textContent = item ? String(item.quantity) : "";
+    button.classList.toggle("has-count", Boolean(item));
+    button.setAttribute("aria-label", item
+      ? `Tambah satu ${button.dataset.variantName || "paket"} lagi ke keranjang, jumlah sekarang ${item.quantity}`
+      : `Tambah ${button.dataset.variantName || "paket"} ke keranjang`);
+  });
 
-  if (activeVariant) {
-    selectedVariant.textContent = activeVariant.dataset.variantName;
-    selectedPrice.textContent = formatRupiah(Number(activeVariant.dataset.price));
-    selectedPayment.textContent = getPayment() || "Pilih pembayaran";
+  summaryItems.replaceChildren();
+  Array.from(cart.values()).forEach((item) => summaryItems.append(makeCartRow(item)));
+  selectedPackage.hidden = !pendingSelection;
+  if (pendingSelection) {
+    const optionName = activeProductOption?.dataset.optionName;
+    selectedPackageName.textContent = optionName ? `${optionName} - ${activeVariant.dataset.variantName}` : activeVariant.dataset.variantName;
+    selectedPackagePrice.textContent = formatRupiah(Number(activeVariant.dataset.price));
   }
+  selectedTotalLabel.textContent = hasItems ? "Total keranjang" : "Harga terpilih";
+  selectedPrice.textContent = formatRupiah(hasItems ? cartTotal() : (activeVariant ? Number(activeVariant.dataset.price) : 0));
+  selectedPayment.textContent = getPayment() || "Pilih pembayaran";
+
   const selectedOption = document.querySelector("[data-summary-option]");
-  if (selectedOption) selectedOption.textContent = activeProductOption?.dataset.optionName || "—";
+  if (selectedOption) {
+    const optionNames = [...new Set([
+      ...Array.from(cart.values()).map((item) => item.optionName),
+      activeProductOption?.dataset.optionName,
+    ].filter(Boolean))];
+    selectedOption.textContent = optionNames.length ? optionNames.join(", ") : "—";
+  }
 
   summaryFields.replaceChildren();
   getFieldValues().filter((field) => field.value || field.required).forEach((field) => {
@@ -95,7 +178,11 @@ const addConfirmRow = (label, value) => {
 variantOptions.forEach((option) => option.addEventListener("click", () => {
   if (option.hidden) return;
   activeVariant = option;
-  variantOptions.forEach((item) => item.setAttribute("aria-pressed", String(item === option)));
+  hasSelectedVariant = true;
+  variantOptions.forEach((item) => {
+    item.setAttribute("aria-pressed", String(item === option));
+    item.closest(".variant-option-card").classList.toggle("is-selected", item === option);
+  });
   updateSummary();
 }));
 
@@ -105,16 +192,44 @@ productOptions.forEach((option) => option.addEventListener("click", () => {
   let matchingVariants = 0;
   variantOptions.forEach((variant) => {
     const matches = variant.dataset.optionId === option.dataset.optionId;
-    variant.hidden = !matches;
+    variant.closest(".variant-option-card").hidden = !matches;
     if (matches) matchingVariants += 1;
-    if (!matches) variant.setAttribute("aria-pressed", "false");
+    variant.setAttribute("aria-pressed", "false");
+    variant.closest(".variant-option-card").classList.remove("is-selected");
   });
   const emptyOptionMessage = document.querySelector("[data-option-empty]");
   if (emptyOptionMessage) emptyOptionMessage.hidden = matchingVariants > 0;
   activeVariant = null;
-  variantOptions.forEach((variant) => variant.setAttribute("aria-pressed", "false"));
   updateSummary();
 }));
+
+cartAddButtons.forEach((button) => button.addEventListener("click", () => {
+  const variant = button.closest(".variant-option-card")?.querySelector("[data-order-variant]");
+  if (!variant || button.closest(".variant-option-card").hidden) return;
+  const id = Number(variant.dataset.variantId);
+  const current = cart.get(id);
+  if (current) {
+    current.quantity = Math.min(current.quantity + 1, 99);
+  } else {
+    cart.set(id, cartItemFromVariant(variant));
+  }
+  updateSummary();
+}));
+
+summaryItems.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-cart-action]");
+  if (!button) return;
+  const id = Number(button.dataset.cartId);
+  const item = cart.get(id);
+  if (!item) return;
+  if (button.dataset.cartAction === "remove") cart.delete(id);
+  if (button.dataset.cartAction === "increase") item.quantity = Math.min(item.quantity + 1, 99);
+  if (button.dataset.cartAction === "decrease") {
+    item.quantity -= 1;
+    if (item.quantity <= 0) cart.delete(id);
+  }
+  updateSummary();
+});
 
 orderFields.forEach((field) => {
   if (field.hasAttribute("data-username-field")) {
@@ -155,11 +270,13 @@ checkout.addEventListener("click", () => {
   confirmSummary.replaceChildren();
   addConfirmRow("Produk", orderPage.dataset.productName);
   addConfirmRow("Pilihan", orderPage.dataset.groupName);
-  if (activeProductOption) addConfirmRow("Subpilihan", activeProductOption.dataset.optionName);
-  addConfirmRow("Paket", activeVariant.dataset.variantName);
+  Array.from(cart.values()).forEach((item, index) => {
+    const itemName = item.optionName ? `${item.optionName} - ${item.name}` : item.name;
+    addConfirmRow(`Item ${index + 1}`, `${itemName} × ${item.quantity} — ${formatRupiah(item.price * item.quantity)}`);
+  });
   getFieldValues().filter((field) => field.value).forEach((field) => addConfirmRow(field.label, field.value));
   addConfirmRow("Pembayaran", getPayment());
-  addConfirmRow("Total", formatRupiah(Number(activeVariant.dataset.price)));
+  addConfirmRow("Total", formatRupiah(cartTotal()));
   confirmDialog.showModal();
 });
 
@@ -185,7 +302,8 @@ confirmDialog.querySelector("[data-order-submit]").addEventListener("click", asy
         "X-CSRF-TOKEN": orderPage.dataset.csrfToken,
       },
       body: JSON.stringify({
-        variant_id: Number(activeVariant.dataset.variantId),
+        product_group_id: Number(orderPage.dataset.productGroupId),
+        items: Array.from(cart.values()).map((item) => ({ variant_id: item.id, quantity: item.quantity })),
         payment_method: getPayment(),
         fields,
       }),

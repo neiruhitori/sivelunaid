@@ -5,11 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\ProductField;
 use App\Models\ProductVariant;
+use App\Models\User;
+use App\Mail\NewOrderAdminNotification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
+use Throwable;
 
 class WelcomeOrderController extends Controller
 {
@@ -59,22 +65,37 @@ class WelcomeOrderController extends Controller
     public function store(Request $request): JsonResponse
     {
         $base = $request->validate([
-            'variant_id' => ['required', 'integer', 'exists:product_variants,id'],
+            'product_group_id' => ['required', 'integer', 'exists:product_groups,id'],
+            'items' => ['required', 'array', 'min:1', 'max:30'],
+            'items.*.variant_id' => ['required', 'integer', 'distinct'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:99'],
             'payment_method' => ['required', 'string', 'in:' . implode(',', self::PAYMENT_METHODS)],
             'fields' => ['nullable', 'array'],
         ]);
 
-        $variant = ProductVariant::query()
+        $requestedItems = collect($base['items']);
+        $variants = ProductVariant::query()
             ->with(['group.product.category', 'groupOption'])
             ->where('is_active', true)
-            ->findOrFail($base['variant_id']);
-        $group = $variant->group;
+            ->where('product_group_id', $base['product_group_id'])
+            ->whereIn('id', $requestedItems->pluck('variant_id'))
+            ->get()
+            ->keyBy('id');
+
+        if ($variants->count() !== $requestedItems->count()) {
+            return response()->json(['message' => 'Ada paket yang sudah tidak tersedia. Muat ulang halaman lalu coba lagi.'], 422);
+        }
+
+        $firstVariant = $variants->get($requestedItems->first()['variant_id']);
+        $group = $firstVariant?->group;
         $product = $group?->product;
 
         abort_unless(
-            $group && $group->is_active && $product && $product->is_active
+            $group && (int) $group->id === (int) $request->input('product_group_id')
+                && $group->is_active && $product && $product->is_active
                 && $product->category?->is_active
-                && (! $group->has_options || ($variant->groupOption && $variant->groupOption->is_active)),
+                && $variants->every(fn (ProductVariant $variant) => ! $group->has_options
+                    || ($variant->groupOption && $variant->groupOption->is_active)),
             422,
         );
 
@@ -127,22 +148,76 @@ class WelcomeOrderController extends Controller
             }
         }
 
-        $price = $variant->discount_price ?? $variant->price;
+        $orderItems = $requestedItems->map(function (array $item) use ($variants) {
+            /** @var ProductVariant $variant */
+            $variant = $variants->get($item['variant_id']);
+            $unitPrice = (float) ($variant->discount_price ?? $variant->price);
+            $quantity = (int) $item['quantity'];
+
+            return [
+                'variant_id' => (int) $variant->id,
+                'option_id' => $variant->product_group_option_id,
+                'name' => $variant->name,
+                'option_name' => $variant->groupOption?->name,
+                'unit_price' => $unitPrice,
+                'quantity' => $quantity,
+                'subtotal' => $unitPrice * $quantity,
+            ];
+        })->values()->all();
+        $total = collect($orderItems)->sum('subtotal');
+        $optionIds = collect($orderItems)->pluck('option_id')->unique()->values();
+        $optionNames = collect($orderItems)->pluck('option_name')->unique()->values();
+        $variantName = count($orderItems) === 1
+            ? $orderItems[0]['name']
+            : count($orderItems) . ' item dalam pesanan';
         $order = Order::query()->create([
             'order_number' => 'VL' . now()->format('ymd') . Str::upper(Str::random(8)),
             'product_id' => $product->id,
             'product_group_id' => $group->id,
-            'product_group_option_id' => $variant->product_group_option_id,
-            'product_variant_id' => $variant->id,
+            'product_group_option_id' => $optionIds->count() === 1 ? $firstVariant->product_group_option_id : null,
+            'product_variant_id' => $firstVariant->id,
             'product_name' => $product->name,
             'group_name' => $group->name,
-            'option_name' => $variant->groupOption?->name,
-            'variant_name' => $variant->name,
+            'option_name' => $optionNames->count() === 1 ? $optionNames->first() : null,
+            'variant_name' => $variantName,
+            'items' => $orderItems,
             'customer_data' => $customerData,
-            'total' => $price,
+            'total' => $total,
             'payment_method' => $base['payment_method'],
             'status' => 'pending_payment',
         ]);
+
+        try {
+            $recipients = User::query()
+                ->where('role', 'admin')
+                ->where('is_active', true)
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            if ($recipients !== []) {
+                $expiresAt = now()->addDays(14);
+                $completedUrl = URL::temporarySignedRoute('orders.email-action.confirm', $expiresAt, [
+                    'order' => $order->id,
+                    'status' => 'completed',
+                ]);
+                $cancelledUrl = URL::temporarySignedRoute('orders.email-action.confirm', $expiresAt, [
+                    'order' => $order->id,
+                    'status' => 'cancelled',
+                ]);
+
+                Mail::to($recipients)->send(new NewOrderAdminNotification($order, $completedUrl, $cancelledUrl));
+            }
+        } catch (Throwable $exception) {
+            Log::error('Gagal mengirim email notifikasi pesanan baru.', [
+                'order_id' => $order->id,
+                'order_number' => $order->order_number,
+                'exception' => $exception->getMessage(),
+            ]);
+        }
 
         return response()->json([
             'order_number' => $order->order_number,
@@ -183,7 +258,16 @@ class WelcomeOrderController extends Controller
         if ($order->option_name) {
             $lines[] = "୨୧ Subpilihan: {$order->option_name}";
         }
-        $lines[] = "୨୧ Paket: {$order->variant_name}";
+        foreach ($order->items ?: [[
+            'name' => $order->variant_name,
+            'option_name' => $order->option_name,
+            'quantity' => 1,
+            'unit_price' => (float) $order->total,
+            'subtotal' => (float) $order->total,
+        ]] as $item) {
+            $itemLabel = ($item['option_name'] ? $item['option_name'] . ' - ' : '') . $item['name'];
+            $lines[] = "୨୧ {$itemLabel} × {$item['quantity']} — Rp" . number_format((float) $item['subtotal'], 0, ',', '.');
+        }
         foreach ($order->customer_data ?? [] as $field) {
             $lines[] = "୨୧ {$field['label']}: {$field['value']}";
         }

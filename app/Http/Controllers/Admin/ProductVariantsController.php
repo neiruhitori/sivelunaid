@@ -81,6 +81,7 @@ class ProductVariantsController extends Controller
     {
         $optionId = $this->validatedOptionId($request, $productGroup);
         $validated = $request->validate([
+            'bulk_description' => ['nullable', 'string', 'max:255'],
             'variants' => ['required', 'array', 'min:1', 'max:50'],
             'variants.*.id' => ['required', 'integer', 'distinct', 'exists:product_variants,id'],
             'variants.*.name' => ['required', 'string', 'max:150'],
@@ -106,6 +107,9 @@ class ProductVariantsController extends Controller
                 ->sortBy(fn ($item) => (int) $item['sort_order'])
                 ->values();
             $variantsById = $existing->keyBy('id');
+            $sharedDescription = $optionId === null
+                ? ($validated['bulk_description'] ?? null)
+                : null;
 
             foreach ($items as $sortOrder => $item) {
                 $variant = $variantsById->get((int) $item['id']);
@@ -119,7 +123,9 @@ class ProductVariantsController extends Controller
 
                 $variant->update([
                     'name' => $item['name'],
-                    'description' => $item['description'] ?? null,
+                    'description' => $sharedDescription !== null
+                        ? $sharedDescription
+                        : ($item['description'] ?? null),
                     'price' => $item['price'],
                     'discount_price' => $discount,
                     'sort_order' => $sortOrder,

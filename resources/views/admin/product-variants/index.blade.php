@@ -43,6 +43,10 @@
                 <div class="modal-body">
                     <div id="bulk-variant-errors" class="alert alert-danger d-none" role="alert"></div>
                     <div id="bulk-variant-context" class="alert alert-light border mb-3"></div>
+                    <div id="bulk-description-wrap" class="form-group d-none">
+                        <label for="bulk-description">Deskripsi bersama <small class="text-muted">(opsional, hanya untuk data tanpa subpilihan)</small></label>
+                        <textarea class="form-control" id="bulk-description" name="bulk_description" rows="2" maxlength="255" placeholder="Isi untuk menerapkan deskripsi ini ke semua variant. Kosongkan agar deskripsi tiap variant tetap mengikuti input masing-masing."></textarea>
+                    </div>
                     <div id="bulk-variant-loading" class="text-center text-muted py-4 d-none"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat semua variant...</div>
                     <div id="bulk-variant-items" class="bulk-variant-items"></div>
                 </div>
@@ -119,11 +123,12 @@
             }
             $('#variants-table tbody').on('click','[data-action="edit-relation"]',function(){
                 const button=$(this),groupId=String(button.attr('data-group-id')),optionId=String(button.attr('data-option-id')||'');
-                bulkErrors.addClass('d-none').empty();bulkItems.empty();$('#bulk-variant-context').text('');$('#bulk-variant-loading').removeClass('d-none');bulkSave.prop('disabled',true);
+                bulkErrors.addClass('d-none').empty();bulkItems.empty();$('#bulk-variant-context').text('');$('#bulk-description-wrap').addClass('d-none');$('#bulk-description').val('');$('#bulk-variant-loading').removeClass('d-none');bulkSave.prop('disabled',true);
                 bulkForm.attr('action',bulkUpdateUrlTemplate.replace('__GROUP__',groupId));$('#bulk-option-id').val(optionId);bulkModal.modal('show');
                 $.get(bulkItemsUrlTemplate.replace('__GROUP__',groupId),{product_group_option_id:optionId})
                     .done(function(data){
                         $('#bulk-variant-loading').addClass('d-none');
+                        $('#bulk-description-wrap').toggleClass('d-none',data.option_id!==null);
                         const relation=[data.product_name,data.group_name,data.option_name||'Tanpa subpilihan'].filter(Boolean).join(' · ');
                         $('#bulk-variant-context').text(`${relation} — ${data.variants.length} variant`);
                         data.variants.forEach((item,index)=>addBulkVariant(item,index));
@@ -140,7 +145,7 @@
                     .fail(showBulkErrors)
                     .always(()=>bulkSave.prop('disabled',bulkItems.children().length===0));
             });
-            bulkModal.on('hidden.bs.modal',function(){bulkForm[0].reset();bulkItems.empty();bulkErrors.addClass('d-none').empty();bulkSave.prop('disabled',true);});
+            bulkModal.on('hidden.bs.modal',function(){bulkForm[0].reset();bulkItems.empty();$('#bulk-description-wrap').addClass('d-none');bulkErrors.addClass('d-none').empty();bulkSave.prop('disabled',true);});
             const modal=$('#variant-modal'),form=$('#variant-form'),errors=$('#form-errors'),save=$('#btn-save-variant'),optionSelect=$('#product_group_option_id'),allOptionChoices=optionSelect.find('option[data-parent]').clone();
             $('#product_group_id').select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Cari Product Group',allowClear:true,width:'100%'});
             optionSelect.select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Pilih Subpilihan',allowClear:true,width:'100%'});

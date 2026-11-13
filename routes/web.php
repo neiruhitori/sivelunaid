@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Http\Controllers\WelcomeProductController;
 use App\Http\Controllers\WelcomeOrderController;
+use App\Http\Controllers\OrderEmailActionController;
 use App\Http\Controllers\Admin\StorefrontController;
 use App\Http\Controllers\Admin\OrdersController;
 
@@ -24,6 +25,13 @@ use App\Http\Controllers\Admin\ProductGroupOptionsController;
 | Public Routes
 |--------------------------------------------------------------------------
 */
+
+Route::get('/orders/{order}/email-action/{status}', [OrderEmailActionController::class, 'confirm'])
+    ->whereNumber('order')->whereIn('status', ['completed', 'cancelled'])
+    ->middleware('signed')->name('orders.email-action.confirm');
+Route::post('/orders/{order}/email-action/{status}', [OrderEmailActionController::class, 'update'])
+    ->whereNumber('order')->whereIn('status', ['completed', 'cancelled'])
+    ->middleware('signed')->name('orders.email-action.update');
 
 Route::middleware('storefront.open')->group(function () {
 Route::get('/riwayat-pesanan', [WelcomeOrderController::class, 'history'])->name('welcome.orders.history');

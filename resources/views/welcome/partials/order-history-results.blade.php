@@ -17,7 +17,16 @@
                 <div class="order-history-card-content">
                     <div>
                         <h2>{{ $order->product_name }}</h2>
-                        <p>{{ $order->group_name }}@if($order->option_name) &middot; {{ $order->option_name }}@endif &middot; {{ $order->variant_name }}</p>
+                        <p>{{ $order->group_name }}@if($order->option_name) &middot; {{ $order->option_name }}@endif</p>
+                        @if (!empty($order->items))
+                            <ul class="order-history-items">
+                                @foreach ($order->items as $item)
+                                    <li>{{ $item['option_name'] ? $item['option_name'] . ' · ' : '' }}{{ $item['name'] }} × {{ $item['quantity'] }}</li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p>{{ $order->variant_name }}</p>
+                        @endif
                     </div>
                     <strong>Rp{{ number_format((float) $order->total, 0, ',', '.') }}</strong>
                 </div>
