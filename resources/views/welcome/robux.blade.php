@@ -88,7 +88,7 @@
                             <div class="nominal-grid product-variant-grid" role="group" aria-label="Pilihan paket {{ $productGroup->name }}">
                                 @foreach ($productGroup->variants as $variant)
                                     @php($price = $variant->discount_price ?? $variant->price)
-                                    <div class="variant-option-card" @if ($productGroup->has_options) hidden @endif>
+                                    <div class="variant-option-card" @if ($productGroup->product->image) style="--variant-product-image: url('{{ asset('storage/' . $productGroup->product->image) }}')" @endif @if ($productGroup->has_options) hidden @endif>
                                         <button class="nominal-option" type="button" data-order-variant
                                             data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
                                             data-price="{{ $price }}" data-option-id="{{ $variant->product_group_option_id }}"
@@ -106,12 +106,29 @@
                                                 @endif
                                             </b>
                                         </button>
-                                        <button class="variant-add-button" type="button" data-cart-add-variant
-                                            data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
-                                            aria-label="Tambah {{ $variant->name }} ke keranjang">
-                                            <img class="variant-add-icon" src="{{ asset('Welcome/image/trolley.png') }}" alt="" aria-hidden="true">
-                                            <span class="variant-add-count" aria-hidden="true"></span>
-                                        </button>
+                                        <div class="variant-overlay-details" aria-hidden="true">
+                                            <strong class="variant-overlay-name">{{ $variant->name }}</strong>
+                                            <span class="variant-overlay-prices">
+                                                <strong>Rp{{ number_format((float) $price, 0, ',', '.') }}</strong>
+                                                @if ($variant->discount_price !== null)
+                                                    <del>Rp{{ number_format((float) $variant->price, 0, ',', '.') }}</del>
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="variant-cart-controls" role="group" aria-label="Jumlah {{ $variant->name }}">
+                                            <button class="variant-quantity-button" type="button" data-cart-adjust="decrease"
+                                                data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
+                                                aria-label="Kurangi {{ $variant->name }}" disabled>−</button>
+                                            <button class="variant-add-button" type="button" data-cart-add-variant
+                                                data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
+                                                aria-label="Tambah {{ $variant->name }} ke keranjang">
+                                                <img class="variant-add-icon" src="{{ asset('Welcome/image/trolley.png') }}" alt="" aria-hidden="true">
+                                                <span class="variant-add-count" aria-hidden="true"></span>
+                                            </button>
+                                            <button class="variant-quantity-button" type="button" data-cart-adjust="increase"
+                                                data-variant-id="{{ $variant->id }}" data-variant-name="{{ $variant->name }}"
+                                                aria-label="Tambah {{ $variant->name }}">+</button>
+                                        </div>
                                     </div>
                                 @endforeach
                             </div>
@@ -206,11 +223,6 @@
                             @if ($productGroup->has_options)
                                 <div class="order-detail-row"><span>Subpilihan</span><strong data-summary-option>—</strong></div>
                             @endif
-                            <div class="order-selected-package" data-summary-selected hidden>
-                                <span>Paket dipilih</span>
-                                <strong data-summary-selected-name></strong>
-                                <small data-summary-selected-price></small>
-                            </div>
                             <div class="order-cart-items" data-summary-items></div>
                             <div class="order-summary-fields" data-summary-fields></div>
                             <div class="order-detail-row"><span>Pembayaran</span><strong data-summary-payment>—</strong></div>

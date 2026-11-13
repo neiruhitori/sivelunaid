@@ -10,21 +10,16 @@ const orderDetails = document.querySelector("[data-order-details]");
 const selectedPayment = document.querySelector("[data-summary-payment]");
 const selectedPrice = document.querySelector("[data-summary-price]");
 const selectedTotalLabel = document.querySelector("[data-summary-total-label]");
-const selectedPackage = document.querySelector("[data-summary-selected]");
-const selectedPackageName = document.querySelector("[data-summary-selected-name]");
-const selectedPackagePrice = document.querySelector("[data-summary-selected-price]");
 const summaryItems = document.querySelector("[data-summary-items]");
 const summaryFields = document.querySelector("[data-summary-fields]");
 const checkout = document.querySelector("[data-order-checkout]");
 const message = document.querySelector("[data-order-message]");
 const cartAddButtons = Array.from(document.querySelectorAll("[data-cart-add-variant]"));
-const variantGrid = document.querySelector(".product-variant-grid");
+const cartAdjustButtons = Array.from(document.querySelectorAll("[data-cart-adjust]"));
 const confirmDialog = document.querySelector("[data-order-confirm]");
 const confirmSummary = document.querySelector("[data-order-confirm-summary]");
 const cart = new Map();
-let activeVariant = null;
 let activeProductOption = null;
-let hasSelectedVariant = false;
 
 const formatRupiah = (amount) => new Intl.NumberFormat("id-ID", {
   style: "currency",
@@ -50,6 +45,29 @@ const getPayment = () => {
 };
 
 const cartTotal = () => Array.from(cart.values()).reduce((total, item) => total + item.price * item.quantity, 0);
+
+const addVariantToCart = (variant) => {
+  const id = Number(variant.dataset.variantId);
+  const current = cart.get(id);
+  if (current) {
+    current.quantity = Math.min(current.quantity + 1, 99);
+  } else {
+    cart.set(id, cartItemFromVariant(variant));
+  }
+};
+
+const adjustCartQuantity = (variantId, adjustment) => {
+  const id = Number(variantId);
+  const item = cart.get(id);
+  if (adjustment > 0) {
+    const variant = variantOptions.find((option) => Number(option.dataset.variantId) === id);
+    if (variant) addVariantToCart(variant);
+    return;
+  }
+  if (!item) return;
+  item.quantity -= 1;
+  if (item.quantity <= 0) cart.delete(id);
+};
 
 const cartItemFromVariant = (variant) => ({
   id: Number(variant.dataset.variantId),
@@ -114,15 +132,13 @@ const makeCartRow = (item) => {
 
 const updateSummary = () => {
   const hasItems = cart.size > 0;
-  const pendingSelection = activeVariant && !cart.has(Number(activeVariant.dataset.variantId));
-  const hasSummary = hasItems || Boolean(activeVariant);
-  orderEmpty.hidden = hasSummary;
-  orderDetails.hidden = !hasSummary;
+  orderEmpty.hidden = hasItems;
+  orderDetails.hidden = !hasItems;
   checkout.disabled = !isComplete();
   message.textContent = "";
-  if (variantGrid) variantGrid.classList.toggle("has-selection", hasSelectedVariant);
   cartAddButtons.forEach((button) => {
     const item = cart.get(Number(button.dataset.variantId));
+    button.closest(".variant-option-card")?.classList.toggle("has-cart-item", Boolean(item));
     const count = button.querySelector(".variant-add-count");
     if (count) count.textContent = item ? String(item.quantity) : "";
     button.classList.toggle("has-count", Boolean(item));
@@ -130,24 +146,24 @@ const updateSummary = () => {
       ? `Tambah satu ${button.dataset.variantName || "paket"} lagi ke keranjang, jumlah sekarang ${item.quantity}`
       : `Tambah ${button.dataset.variantName || "paket"} ke keranjang`);
   });
+  cartAdjustButtons.forEach((button) => {
+    const item = cart.get(Number(button.dataset.variantId));
+    button.disabled = button.dataset.cartAdjust === "decrease" && !item;
+    button.setAttribute("aria-label", button.dataset.cartAdjust === "decrease"
+      ? `Kurangi ${button.dataset.variantName || "paket"}${item ? `, jumlah sekarang ${item.quantity}` : ", belum ada di keranjang"}`
+      : `Tambah ${button.dataset.variantName || "paket"}${item ? `, jumlah sekarang ${item.quantity}` : ""}`);
+  });
 
   summaryItems.replaceChildren();
   Array.from(cart.values()).forEach((item) => summaryItems.append(makeCartRow(item)));
-  selectedPackage.hidden = !pendingSelection;
-  if (pendingSelection) {
-    const optionName = activeProductOption?.dataset.optionName;
-    selectedPackageName.textContent = optionName ? `${optionName} - ${activeVariant.dataset.variantName}` : activeVariant.dataset.variantName;
-    selectedPackagePrice.textContent = formatRupiah(Number(activeVariant.dataset.price));
-  }
-  selectedTotalLabel.textContent = hasItems ? "Total keranjang" : "Harga terpilih";
-  selectedPrice.textContent = formatRupiah(hasItems ? cartTotal() : (activeVariant ? Number(activeVariant.dataset.price) : 0));
+  selectedTotalLabel.textContent = "Total keranjang";
+  selectedPrice.textContent = formatRupiah(cartTotal());
   selectedPayment.textContent = getPayment() || "Pilih pembayaran";
 
   const selectedOption = document.querySelector("[data-summary-option]");
   if (selectedOption) {
     const optionNames = [...new Set([
       ...Array.from(cart.values()).map((item) => item.optionName),
-      activeProductOption?.dataset.optionName,
     ].filter(Boolean))];
     selectedOption.textContent = optionNames.length ? optionNames.join(", ") : "—";
   }
@@ -177,12 +193,12 @@ const addConfirmRow = (label, value) => {
 
 variantOptions.forEach((option) => option.addEventListener("click", () => {
   if (option.hidden) return;
-  activeVariant = option;
-  hasSelectedVariant = true;
   variantOptions.forEach((item) => {
     item.setAttribute("aria-pressed", String(item === option));
     item.closest(".variant-option-card").classList.toggle("is-selected", item === option);
+    item.closest(".variant-option-card").classList.toggle("is-overlay-open", item === option);
   });
+  addVariantToCart(option);
   updateSummary();
 }));
 
@@ -196,23 +212,34 @@ productOptions.forEach((option) => option.addEventListener("click", () => {
     if (matches) matchingVariants += 1;
     variant.setAttribute("aria-pressed", "false");
     variant.closest(".variant-option-card").classList.remove("is-selected");
+    variant.closest(".variant-option-card").classList.remove("is-overlay-open");
   });
   const emptyOptionMessage = document.querySelector("[data-option-empty]");
   if (emptyOptionMessage) emptyOptionMessage.hidden = matchingVariants > 0;
-  activeVariant = null;
   updateSummary();
 }));
+
+document.addEventListener("click", (event) => {
+  if (!window.matchMedia("(hover: none), (pointer: coarse)").matches) return;
+  if (event.target.closest(".variant-option-card")) return;
+
+  const openCards = document.querySelectorAll(".variant-option-card.is-overlay-open");
+  if (!openCards.length) return;
+  openCards.forEach((card) => {
+    card.classList.remove("is-overlay-open", "is-selected");
+    card.querySelector("[data-order-variant]")?.setAttribute("aria-pressed", "false");
+  });
+});
 
 cartAddButtons.forEach((button) => button.addEventListener("click", () => {
   const variant = button.closest(".variant-option-card")?.querySelector("[data-order-variant]");
   if (!variant || button.closest(".variant-option-card").hidden) return;
-  const id = Number(variant.dataset.variantId);
-  const current = cart.get(id);
-  if (current) {
-    current.quantity = Math.min(current.quantity + 1, 99);
-  } else {
-    cart.set(id, cartItemFromVariant(variant));
-  }
+  addVariantToCart(variant);
+  updateSummary();
+}));
+
+cartAdjustButtons.forEach((button) => button.addEventListener("click", () => {
+  adjustCartQuantity(button.dataset.variantId, button.dataset.cartAdjust === "increase" ? 1 : -1);
   updateSummary();
 }));
 
