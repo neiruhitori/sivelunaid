@@ -141,6 +141,10 @@ Route::middleware(['auth', 'verified'])
         // Product Variants
         Route::get('product-variants/data', [ProductVariantsController::class, 'data'])
             ->name('product-variants.data');
+        Route::get('product-variants/groups/{productGroup}/items', [ProductVariantsController::class, 'groupItems'])
+            ->whereNumber('productGroup')->name('product-variants.groups.items');
+        Route::put('product-variants/groups/{productGroup}/items', [ProductVariantsController::class, 'updateGroupItems'])
+            ->whereNumber('productGroup')->name('product-variants.groups.update');
         Route::resource('product-variants', ProductVariantsController::class);
 
         // Product Fields

@@ -54,6 +54,86 @@ class ProductVariantsController extends Controller
             ->make(true);
     }
 
+    public function groupItems(Request $request, ProductGroup $productGroup)
+    {
+        $optionId = $this->validatedOptionId($request, $productGroup);
+        $variants = $this->orderedVariants((int) $productGroup->id, $optionId);
+
+        return response()->json([
+            'product_group_id' => $productGroup->id,
+            'product_name' => $productGroup->product?->name,
+            'group_name' => $productGroup->name,
+            'option_id' => $optionId,
+            'option_name' => $optionId ? ProductGroupOption::query()->whereKey($optionId)->value('name') : null,
+            'variants' => $variants->map(fn (ProductVariant $variant) => [
+                'id' => $variant->id,
+                'name' => $variant->name,
+                'description' => $variant->description,
+                'price' => $variant->price,
+                'discount_price' => $variant->discount_price,
+                'sort_order' => $variant->sort_order,
+                'is_active' => $variant->is_active,
+            ])->values(),
+        ]);
+    }
+
+    public function updateGroupItems(Request $request, ProductGroup $productGroup)
+    {
+        $optionId = $this->validatedOptionId($request, $productGroup);
+        $validated = $request->validate([
+            'variants' => ['required', 'array', 'min:1', 'max:50'],
+            'variants.*.id' => ['required', 'integer', 'distinct', 'exists:product_variants,id'],
+            'variants.*.name' => ['required', 'string', 'max:150'],
+            'variants.*.description' => ['nullable', 'string', 'max:255'],
+            'variants.*.price' => ['required', 'numeric', 'min:0'],
+            'variants.*.discount_price' => ['nullable', 'numeric', 'min:0'],
+            'variants.*.sort_order' => ['required', 'integer', 'min:0', 'distinct'],
+            'variants.*.is_active' => ['required', 'boolean'],
+        ]);
+
+        DB::transaction(function () use ($productGroup, $optionId, $validated) {
+            $existing = $this->orderedVariants((int) $productGroup->id, $optionId);
+            $submittedIds = collect($validated['variants'])->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+            $existingIds = $existing->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+
+            if ($submittedIds !== $existingIds) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'variants' => 'Daftar variant berubah. Tutup modal lalu buka kembali sebelum menyimpan.',
+                ]);
+            }
+
+            $items = collect($validated['variants'])->values()
+                ->sortBy(fn ($item) => (int) $item['sort_order'])
+                ->values();
+            $variantsById = $existing->keyBy('id');
+
+            foreach ($items as $sortOrder => $item) {
+                $variant = $variantsById->get((int) $item['id']);
+                $discount = $item['discount_price'] ?? null;
+
+                if ($discount !== null && (float) $discount > (float) $item['price']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "variants.{$sortOrder}.discount_price" => 'Harga promo tidak boleh melebihi harga normal.',
+                    ]);
+                }
+
+                $variant->update([
+                    'name' => $item['name'],
+                    'description' => $item['description'] ?? null,
+                    'price' => $item['price'],
+                    'discount_price' => $discount,
+                    'sort_order' => $sortOrder,
+                    'is_active' => $item['is_active'],
+                ]);
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => count($validated['variants']) . ' Product Variant berhasil diperbarui.',
+        ]);
+    }
+
     public function create()
     {
         return redirect()->route('admin.product-variants.index');
@@ -180,6 +260,31 @@ class ProductVariantsController extends Controller
         }
 
         return $validated;
+    }
+
+    private function validatedOptionId(Request $request, ProductGroup $productGroup): ?int
+    {
+        $validated = $request->validate([
+            'product_group_option_id' => ['nullable', 'integer', 'exists:product_group_options,id'],
+        ]);
+        $optionId = isset($validated['product_group_option_id']) ? (int) $validated['product_group_option_id'] : null;
+
+        if ($productGroup->has_options && $optionId === null) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'product_group_option_id' => 'Pilih subpilihan untuk Product Group ini.',
+            ]);
+        }
+
+        if ($optionId !== null) {
+            $belongsToGroup = ProductGroupOption::query()->whereKey($optionId)
+                ->where('product_group_id', $productGroup->id)->exists();
+
+            if (! $productGroup->has_options || ! $belongsToGroup) {
+                abort(404);
+            }
+        }
+
+        return $optionId;
     }
 
     private function orderedVariants(int $groupId, ?int $optionId = null)

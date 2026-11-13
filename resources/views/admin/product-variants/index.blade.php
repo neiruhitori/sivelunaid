@@ -30,13 +30,37 @@
         </div><div class="modal-footer justify-content-between"><button type="button" class="btn btn-default" data-dismiss="modal">Batal</button><button type="submit" id="btn-save-variant" class="btn btn-primary"><i class="fas fa-save mr-1"></i><span>Simpan Variant</span></button></div>
     </form></div></div>
 
+    <div class="modal fade" id="variant-group-edit-modal" tabindex="-1" role="dialog" aria-labelledby="variant-group-edit-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document">
+            <form id="variant-group-edit-form" class="modal-content" method="POST">
+                @csrf
+                <input type="hidden" name="_method" value="PUT">
+                <input type="hidden" name="product_group_option_id" id="bulk-option-id">
+                <div class="modal-header">
+                    <div><h5 class="modal-title" id="variant-group-edit-title">Edit semua Product Variant</h5><small class="text-muted">Perbarui beberapa variant dalam satu kali simpan.</small></div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <div id="bulk-variant-errors" class="alert alert-danger d-none" role="alert"></div>
+                    <div id="bulk-variant-context" class="alert alert-light border mb-3"></div>
+                    <div id="bulk-variant-loading" class="text-center text-muted py-4 d-none"><i class="fas fa-spinner fa-spin mr-2"></i>Memuat semua variant...</div>
+                    <div id="bulk-variant-items" class="bulk-variant-items"></div>
+                </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
+                    <button type="submit" id="btn-save-bulk-variants" class="btn btn-primary" disabled><i class="fas fa-save mr-1"></i>Simpan Semua</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('styles')
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2/css/select2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
-        <style>#variants-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}.variant-items{max-height:260px;overflow-y:auto;padding:.15rem .35rem .15rem 0;-webkit-overflow-scrolling:touch}.variant-item-card{border-left:3px solid #007bff}.variant-item-card .card-header{padding:.45rem .75rem}.variant-item-card .card-body{padding:.55rem .65rem}.variant-item-card .form-group{margin-bottom:.25rem}@media(max-width:767.98px){.variant-items{max-height:220px}.variant-item-card .form-control{padding:.25rem .35rem;font-size:.85rem}.variant-item-card label{font-size:.82rem}}</style>
+        <style>#variants-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}.variant-items{max-height:260px;overflow-y:auto;padding:.15rem .35rem .15rem 0;-webkit-overflow-scrolling:touch}.variant-item-card,.bulk-variant-item{border-left:3px solid #007bff}.variant-item-card .card-header,.bulk-variant-item .card-header{padding:.45rem .75rem}.variant-item-card .card-body,.bulk-variant-item .card-body{padding:.55rem .65rem}.variant-item-card .form-group,.bulk-variant-item .form-group{margin-bottom:.5rem}.bulk-variant-items{padding-right:.15rem}@media(max-width:767.98px){.variant-items{max-height:220px}.variant-item-card .form-control,.bulk-variant-item .form-control{padding:.35rem .45rem;font-size:.9rem}.variant-item-card label,.bulk-variant-item label{font-size:.85rem}}</style>
     @endpush
     @push('scripts')
         <script src="{{ asset('AdminLTE-3.2.0/plugins/datatables/jquery.dataTables.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
@@ -46,8 +70,77 @@
             const expandedGroups=new Set();
             const table=$('#variants-table').DataTable({processing:true,serverSide:true,autoWidth:false,ajax:"{{ route('admin.product-variants.data') }}",columns:[
                 {data:'DT_RowIndex',name:'DT_RowIndex',orderable:false,searchable:false},{data:'product_group_id',name:'product_variants.product_group_id',visible:false,searchable:false},{data:'product_group_option_id',name:'product_variants.product_group_option_id',visible:false,searchable:false},{data:'name',name:'product_variants.name'},{data:'group_name',name:'product_groups.name'},{data:'option_name',name:'product_group_options.name',defaultContent:'-'},{data:'description',name:'product_variants.description',defaultContent:'-'},{data:'price_display',name:'product_variants.price',searchable:false},{data:'discount_display',name:'product_variants.discount_price',searchable:false,orderable:false},{data:'sort_order',name:'product_variants.sort_order'},{data:'status',name:'product_variants.is_active',searchable:false},{data:'created_at',name:'product_variants.created_at'},{data:'actions',name:'actions',orderable:false,searchable:false}
-            ],orderFixed:{pre:[[1,'asc'],[2,'asc']]},order:[[9,'asc']],drawCallback:function(){const rows=this.api().rows({page:'current'});let previousGroup=null;rows.every(function(){const variant=this.data(),key=String(variant.product_group_id)+':'+String(variant.product_group_option_id||'direct'),expanded=expandedGroups.has(key),row=$(this.node()).attr('data-relation-group',key).toggle(expanded);if(key===String(previousGroup))return;const heading=variant.option_name?variant.group_name+' - '+variant.option_name:variant.group_name+' - tanpa subpilihan',toggle=$('<button/>',{type:'button',class:'btn btn-link text-dark font-weight-bold p-0 relation-folder-toggle','aria-expanded':String(expanded)}).attr('data-group-key',key);toggle.append($('<i/>',{class:'fas '+(expanded?'fa-folder-open':'fa-folder')+' mr-2'}));toggle.append(document.createTextNode('Product Group #'+variant.product_group_id+' - '+heading));row.before($('<tr/>',{class:'relation-group-row'}).append($('<td/>',{colspan:11}).append(toggle)));previousGroup=key;});},language:{processing:'Memproses...',search:'Cari:',lengthMenu:'Tampilkan _MENU_ data',info:'Menampilkan _START_–_END_ dari _TOTAL_ data',infoEmpty:'Belum ada data Product Variant',infoFiltered:'(difilter dari _MAX_ total data)',zeroRecords:'Product Variant tidak ditemukan',emptyTable:'Belum ada Product Variant. Silakan tambahkan data pertama.',paginate:{first:'Pertama',last:'Terakhir',next:'Berikutnya',previous:'Sebelumnya'}}});
+            ],orderFixed:{pre:[[1,'asc'],[2,'asc']]},order:[[9,'asc']],drawCallback:function(){
+                const rows=this.api().rows({page:'current'});let previousGroup=null;
+                rows.every(function(){
+                    const variant=this.data(),key=String(variant.product_group_id)+':'+String(variant.product_group_option_id||'direct'),expanded=expandedGroups.has(key),row=$(this.node()).attr('data-relation-group',key).toggle(expanded);
+                    if(key===String(previousGroup))return;
+                    const heading=variant.option_name?variant.group_name+' - '+variant.option_name:variant.group_name+' - tanpa subpilihan';
+                    const toggle=$('<button/>',{type:'button',class:'btn btn-link text-dark font-weight-bold p-0 relation-folder-toggle','aria-expanded':String(expanded)}).attr('data-group-key',key);
+                    toggle.append($('<i/>',{class:'fas '+(expanded?'fa-folder-open':'fa-folder')+' mr-2'}));
+                    toggle.append(document.createTextNode('Product Group #'+variant.product_group_id+' - '+heading));
+                    const editAll=$('<button/>',{type:'button',class:'btn btn-outline-primary btn-sm ml-2','data-action':'edit-relation'}).attr('data-group-id',variant.product_group_id).attr('data-option-id',variant.product_group_option_id||'').html('<i class="fas fa-edit mr-1"></i>Edit semua');
+                    const header=$('<div/>',{class:'d-flex align-items-center justify-content-between flex-wrap'}).append(toggle,editAll);
+                    row.before($('<tr/>',{class:'relation-group-row'}).append($('<td/>',{colspan:11}).append(header)));
+                    previousGroup=key;
+                });
+            },language:{processing:'Memproses...',search:'Cari:',lengthMenu:'Tampilkan _MENU_ data',info:'Menampilkan _START_–_END_ dari _TOTAL_ data',infoEmpty:'Belum ada data Product Variant',infoFiltered:'(difilter dari _MAX_ total data)',zeroRecords:'Product Variant tidak ditemukan',emptyTable:'Belum ada Product Variant. Silakan tambahkan data pertama.',paginate:{first:'Pertama',last:'Terakhir',next:'Berikutnya',previous:'Sebelumnya'}}});
             $('#variants-table tbody').on('click','.relation-folder-toggle',function(){const key=String($(this).attr('data-group-key')),expanded=!expandedGroups.has(key);if(expanded)expandedGroups.add(key);else expandedGroups.delete(key);$(this).attr('aria-expanded',String(expanded)).find('i').toggleClass('fa-folder',!expanded).toggleClass('fa-folder-open',expanded);$('#variants-table tbody tr[data-relation-group]').each(function(){if($(this).attr('data-relation-group')===key)$(this).toggle(expanded);});});
+            const bulkModal=$('#variant-group-edit-modal'),bulkForm=$('#variant-group-edit-form'),bulkItems=$('#bulk-variant-items'),bulkErrors=$('#bulk-variant-errors'),bulkSave=$('#btn-save-bulk-variants');
+            const bulkItemsUrlTemplate=@json(route('admin.product-variants.groups.items',['productGroup'=>'__GROUP__']));
+            const bulkUpdateUrlTemplate=@json(route('admin.product-variants.groups.update',['productGroup'=>'__GROUP__']));
+            function addBulkVariant(item,index){
+                const card=$('<div/>',{class:'card card-outline card-secondary bulk-variant-item mb-2'});
+                const header=$('<div/>',{class:'card-header'}).append($('<strong/>').text('Variant '+(index+1)));
+                const body=$('<div/>',{class:'card-body'}),row=$('<div/>',{class:'row'});
+                card.append($('<input/>',{type:'hidden',name:`variants[${index}][id]`}).val(item.id));
+                const addInput=(label,key,type,value,classes,attrs={})=>{
+                    const col=$('<div/>',{class:classes}),group=$('<div/>',{class:'form-group'});
+                    group.append($('<label/>').text(label));
+                    const input=$('<input/>',Object.assign({class:'form-control',type,name:`variants[${index}][${key}]`,required:true},attrs)).val(value??'');
+                    group.append(input);col.append(group);row.append(col);
+                };
+                addInput('Nama Variant','name','text',item.name,'col-12 col-md-6',{maxlength:150});
+                addInput('Deskripsi','description','text',item.description,'col-12 col-md-6',{maxlength:255,required:false,placeholder:'Opsional'});
+                addInput('Harga (Rp)','price','number',item.price,'col-6 col-md-3',{min:0,step:'0.01'});
+                addInput('Harga Promo (Rp)','discount_price','number',item.discount_price,'col-6 col-md-3',{min:0,step:'0.01',required:false,placeholder:'Opsional'});
+                addInput('Urutan','sort_order','number',item.sort_order,'col-6 col-md-3',{min:0,step:1});
+                const statusCol=$('<div/>',{class:'col-6 col-md-3'}),statusGroup=$('<div/>',{class:'form-group'});
+                statusGroup.append($('<label/>').text('Status'));
+                const status=$('<select/>',{class:'custom-select',name:`variants[${index}][is_active]`,required:true})
+                    .append($('<option/>',{value:'1'}).text('Aktif'))
+                    .append($('<option/>',{value:'0'}).text('Nonaktif'))
+                    .val(item.is_active?'1':'0');
+                statusGroup.append(status);statusCol.append(statusGroup);row.append(statusCol);body.append(row);card.append(header,body);bulkItems.append(card);
+            }
+            function showBulkErrors(xhr){
+                const messages=xhr.responseJSON?.errors?Object.values(xhr.responseJSON.errors).flat():[xhr.responseJSON?.message||'Data Product Variant gagal disimpan.'];
+                bulkErrors.html(messages.map(message=>`<div>${$('<div>').text(message).html()}</div>`).join('')).removeClass('d-none');
+            }
+            $('#variants-table tbody').on('click','[data-action="edit-relation"]',function(){
+                const button=$(this),groupId=String(button.attr('data-group-id')),optionId=String(button.attr('data-option-id')||'');
+                bulkErrors.addClass('d-none').empty();bulkItems.empty();$('#bulk-variant-context').text('');$('#bulk-variant-loading').removeClass('d-none');bulkSave.prop('disabled',true);
+                bulkForm.attr('action',bulkUpdateUrlTemplate.replace('__GROUP__',groupId));$('#bulk-option-id').val(optionId);bulkModal.modal('show');
+                $.get(bulkItemsUrlTemplate.replace('__GROUP__',groupId),{product_group_option_id:optionId})
+                    .done(function(data){
+                        $('#bulk-variant-loading').addClass('d-none');
+                        const relation=[data.product_name,data.group_name,data.option_name||'Tanpa subpilihan'].filter(Boolean).join(' · ');
+                        $('#bulk-variant-context').text(`${relation} — ${data.variants.length} variant`);
+                        data.variants.forEach((item,index)=>addBulkVariant(item,index));
+                        bulkSave.prop('disabled',data.variants.length===0);
+                        if(data.variants.length===0)bulkErrors.text('Belum ada variant pada relasi ini.').removeClass('d-none');
+                    })
+                    .fail(showBulkErrors)
+                    .always(()=>$('#bulk-variant-loading').addClass('d-none'));
+            });
+            bulkForm.on('submit',function(event){
+                event.preventDefault();bulkErrors.addClass('d-none').empty();bulkSave.prop('disabled',true);
+                $.ajax({url:bulkForm.attr('action'),method:'POST',data:bulkForm.serialize(),headers:{Accept:'application/json'}})
+                    .done(function(response){bulkModal.modal('hide');table.ajax.reload(null,false);Swal.fire({icon:'success',title:'Berhasil',text:response.message,timer:1700,showConfirmButton:false});})
+                    .fail(showBulkErrors)
+                    .always(()=>bulkSave.prop('disabled',bulkItems.children().length===0));
+            });
+            bulkModal.on('hidden.bs.modal',function(){bulkForm[0].reset();bulkItems.empty();bulkErrors.addClass('d-none').empty();bulkSave.prop('disabled',true);});
             const modal=$('#variant-modal'),form=$('#variant-form'),errors=$('#form-errors'),save=$('#btn-save-variant'),optionSelect=$('#product_group_option_id'),allOptionChoices=optionSelect.find('option[data-parent]').clone();
             $('#product_group_id').select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Cari Product Group',allowClear:true,width:'100%'});
             optionSelect.select2({theme:'bootstrap4',dropdownParent:modal,placeholder:'Pilih Subpilihan',allowClear:true,width:'100%'});
