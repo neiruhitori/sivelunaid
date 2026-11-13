@@ -14,6 +14,39 @@
         .relation-group-row td { background: #eef3fb !important; border-top: 2px solid #cbd8eb; color: #34445d; }
     </style>
     @stack('styles')
+    <style>
+        .modal .modal-content {
+            min-height: 0;
+            max-height: calc(100vh - 1rem);
+            max-height: calc(100dvh - 1rem);
+        }
+        .modal .modal-content > form {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+        .modal .modal-body,
+        .modal .modal-content > form > .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+        .modal .modal-header,
+        .modal .modal-footer,
+        .modal .modal-content > form > .modal-header,
+        .modal .modal-content > form > .modal-footer {
+            flex: 0 0 auto;
+        }
+        @media (max-width: 767.98px) {
+            .modal .modal-dialog { margin: .5rem; }
+            .modal .modal-content { max-height: calc(100vh - 1rem); max-height: calc(100dvh - 1rem); }
+            .modal .modal-footer { padding-bottom: calc(.75rem + env(safe-area-inset-bottom, 0px)); }
+        }
+    </style>
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

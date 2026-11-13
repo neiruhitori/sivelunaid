@@ -15,7 +15,7 @@
         <div class="card-body"><div class="table-responsive"><table id="fields-table" class="table table-bordered table-hover table-striped w-100"><thead><tr><th>No.</th><th class="d-none"></th><th>Nama Field</th><th>Product Group</th><th>Field Key</th><th>Tipe Input</th><th>Placeholder</th><th>Required</th><th>Urutan</th><th style="min-width:130px">Aksi</th></tr></thead></table></div></div>
     </div>
 
-    <div class="modal fade" id="field-modal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document"><div class="modal-content"><form id="field-form" method="POST">
+    <div class="modal fade" id="field-modal" tabindex="-1" role="dialog" aria-labelledby="modal-title" aria-hidden="true"><div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg" role="document"><form id="field-form" class="modal-content" method="POST">
         @csrf
         <input type="hidden" name="sort_order_custom" id="sort_order_custom" value="0">
         <div class="modal-header"><div><h5 class="modal-title" id="modal-title">Tambah Product Field</h5><small class="text-muted">Field key dibuat otomatis dari nama field.</small></div><button type="button" class="close" data-dismiss="modal" aria-label="Tutup"><span aria-hidden="true">&times;</span></button></div>
@@ -26,7 +26,7 @@
             <small class="form-text text-muted mb-3">Urutan mengikuti susunan baris. Field key otomatis diubah ke huruf kecil dan format snake_case. Jika nama field mengandung “Username” (contoh: Username Roblox), input di halaman pemesanan otomatis diawali @.</small>
             <div class="row"><div class="form-group col-md-6"><label for="sort_order">Urutan Tampilan</label><input class="form-control" id="sort_order" name="sort_order" type="number" min="0" step="1" value="0" required><small class="form-text text-muted">Urutan otomatis dilanjutkan dalam Product Group terpilih; ubah angka untuk menyisipkan.</small></div></div>
         </div><div class="modal-footer justify-content-between"><button type="button" class="btn btn-default" data-dismiss="modal">Batal</button><button type="submit" id="btn-save-field" class="btn btn-primary"><i class="fas fa-save mr-1"></i><span>Simpan Field</span></button></div>
-    </form></div></div></div>
+    </form></div></div>
 
     @push('styles')
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/css/dataTables.bootstrap4.min.css') }}">
@@ -34,7 +34,7 @@
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/select2-bootstrap4-theme/select2-bootstrap4.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2/sweetalert2.min.css') }}">
         <link rel="stylesheet" href="{{ asset('AdminLTE-3.2.0/plugins/sweetalert2-theme-bootstrap-4/bootstrap-4.min.css') }}">
-        <style>#fields-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}.field-items{max-height:260px;overflow-y:auto;padding:.15rem .35rem .15rem 0}.field-item-card{border-left:3px solid #007bff}.field-item-card .card-header{padding:.45rem .75rem}.field-item-card .card-body{padding:.55rem .65rem}.field-item-card .form-group{margin-bottom:.25rem}@media(max-width:767.98px){.field-items{max-height:220px}.field-item-card .form-control{padding:.25rem .35rem;font-size:.85rem}.field-item-card label{font-size:.82rem}}</style>
+        <style>#fields-table td{vertical-align:middle}.dataTables_wrapper .dataTables_filter input{margin-left:.5rem}.field-items{max-height:260px;overflow-y:auto;padding:.15rem .35rem .15rem 0;-webkit-overflow-scrolling:touch}.field-item-card{border-left:3px solid #007bff}.field-item-card .card-header{padding:.45rem .75rem}.field-item-card .card-body{padding:.55rem .65rem}.field-item-card .form-group{margin-bottom:.25rem}@media(max-width:767.98px){.field-items{max-height:220px}.field-item-card .form-control{padding:.25rem .35rem;font-size:.85rem}.field-item-card label{font-size:.82rem}}</style>
     @endpush
     @push('scripts')
         <script src="{{ asset('AdminLTE-3.2.0/plugins/datatables/jquery.dataTables.min.js') }}"></script><script src="{{ asset('AdminLTE-3.2.0/plugins/datatables-bs4/js/dataTables.bootstrap4.min.js') }}"></script>
